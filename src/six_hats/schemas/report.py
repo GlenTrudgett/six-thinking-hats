@@ -1,17 +1,44 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from datetime import UTC, datetime
+from typing import Annotated
 
-from six_hats.schemas.failures import FailureRecord
-from six_hats.schemas.hat_output import HatOutput
+from pydantic import BaseModel, Field, StringConstraints
+
+from six_hats.schemas.hat_output import ThinkingHatName
+
+Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=800)]
+
+
+class HatSummary(BaseModel):
+    hat: ThinkingHatName
+    summary: Text
+
+
+class BlueCloseOutput(BaseModel):
+    """What Blue-Close (the LLM) writes. Metadata is added in code, never by the model."""
+
+    framing_summary: Text
+    hat_summaries: list[HatSummary] = Field(default_factory=list, max_length=5)
+    conclusions: list[Text] = Field(min_length=1, max_length=7)
+    agreements: list[Text] = Field(default_factory=list, max_length=7)
+    tensions: list[Text] = Field(default_factory=list, max_length=7)
+    recommended_next_steps: list[Text] = Field(default_factory=list, max_length=7)
+    open_questions: list[Text] = Field(default_factory=list, max_length=7)
 
 
 class FinalReport(BaseModel):
-    summary: str
-    recommendation: str
-    hats: list[HatOutput] = Field(default_factory=list)
-    failures: list[FailureRecord] = Field(default_factory=list)
-
-    @property
-    def degraded(self) -> bool:
-        return bool(self.failures)
+    run_id: str
+    framing_summary: str
+    hat_summaries: list[HatSummary] = Field(default_factory=list)
+    conclusions: list[str] = Field(default_factory=list)
+    agreements: list[str] = Field(default_factory=list)
+    tensions: list[str] = Field(default_factory=list)
+    recommended_next_steps: list[str] = Field(default_factory=list)
+    open_questions: list[str] = Field(default_factory=list)
+    missing_perspectives: list[ThinkingHatName] = Field(default_factory=list)
+    degraded: bool = False
+    models_used: list[str] = Field(default_factory=list)
+    token_usage: dict[str, int] = Field(default_factory=dict)
+    prompt_versions: dict[str, str] = Field(default_factory=dict)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

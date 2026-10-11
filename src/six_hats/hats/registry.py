@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from six_hats.hats.base import PromptName
 from six_hats.schemas.hat_output import HatName
 
 HATS: dict[HatName, str] = {
@@ -8,7 +9,14 @@ HATS: dict[HatName, str] = {
     "black": "Cautious: risks and weaknesses.",
     "yellow": "Optimistic: benefits and hope.",
     "green": "Creative: new ideas and alternatives.",
-    "blue": "Process control: organises the thinking.",
+    "blue": "Process control: frames the session and writes the final report.",
 }
 
-IMPLEMENTED: frozenset[HatName] = frozenset({"white"})
+PROMPTS_BY_HAT: dict[HatName, tuple[PromptName, ...]] = {
+    "white": ("white",),
+    "red": ("red",),
+    "black": ("black",),
+    "yellow": ("yellow",),
+    "green": ("green",),
+    "blue": ("blue_open", "blue_close"),
+}

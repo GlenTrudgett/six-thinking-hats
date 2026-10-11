@@ -12,20 +12,42 @@ def test_hat_output_bounds():
         HatOutput(hat="white", key_points=["a", "b"])
     with pytest.raises(ValidationError):
         HatOutput(hat="white", key_points=list("abcdefgh"))
-    assert HatOutput(hat="white", key_points=["a", "b", "c"]).confidence == "medium"
+    assert HatOutput(hat="white", key_points=["a", "b", "c"]).confidence is None
 
 
-def test_unknown_hat_rejected():
+def test_hat_output_point_length_cap():
     with pytest.raises(ValidationError):
-        HatOutput(hat="purple", key_points=["a", "b", "c"])
+        HatOutput(hat="white", key_points=["a", "b", "x" * 501])
 
 
-def test_report_degraded():
-    assert not FinalReport(summary="s", recommendation="r").degraded
-    f = FailureRecord(hat="red", error_type="Timeout", message="m")
-    assert FinalReport(summary="s", recommendation="r", failures=[f]).degraded
-
-
-def test_framing_sequence_limits():
+@pytest.mark.parametrize("bad", ["purple", "blue", "../etc"])
+def test_unknown_or_non_thinking_hat_rejected(bad):
     with pytest.raises(ValidationError):
-        Framing(problem_statement="p", mode="evaluate_idea", sequence=[])
+        HatOutput(hat=bad, key_points=["a", "b", "c"])
+
+
+def test_report_defaults():
+    r = FinalReport(run_id="r", framing_summary="s")
+    assert not r.degraded and r.missing_perspectives == []
+
+
+def test_failure_record_has_no_prompt_field():
+    f = FailureRecord(node="red", hat="red", error_type="Timeout", message="m")
+    assert "prompt" not in f.model_dump()
+
+
+def _framing(**kw):
+    base = dict(focus="f", objective="o", thinking_type="evaluation", sequence=["white"])
+    return Framing(**{**base, **kw})
+
+
+def test_framing_allow_lists():
+    assert _framing().mode == "parallel"
+    for bad in (
+        dict(sequence=[]),
+        dict(sequence=["purple"]),
+        dict(mode="yolo"),
+        dict(thinking_type="other"),
+    ):
+        with pytest.raises(ValidationError):
+            _framing(**bad)

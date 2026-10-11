@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, ValidationError
 
 
@@ -12,7 +13,11 @@ class StructuredOutputError(RuntimeError):
 
 
 async def ainvoke_structured[T: BaseModel](
-    model: BaseChatModel, schema: type[T], system: str, user: str
+    model: BaseChatModel,
+    schema: type[T],
+    system: str,
+    user: str,
+    config: RunnableConfig | None = None,
 ) -> T:
     runnable = model.with_structured_output(schema)
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
@@ -26,7 +31,7 @@ async def ainvoke_structured[T: BaseModel](
                 )
             )
         try:
-            result = await runnable.ainvoke(messages)
+            result = await runnable.ainvoke(messages, config=config)
             if isinstance(result, schema):
                 return result
             return schema.model_validate(result)

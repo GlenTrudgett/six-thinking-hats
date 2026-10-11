@@ -1,14 +1,20 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
-from six_hats.schemas.hat_output import HatName
+from six_hats.schemas.hat_output import ThinkingHatName
+
+Sentence = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=400)]
 
 
 class Framing(BaseModel):
-    problem_statement: str
-    mode: Literal["evaluate_idea", "generate_ideas", "solve_problem"]
-    sequence: list[HatName] = Field(min_length=1, max_length=5)
-    rationale: str = ""
+    """Blue-Open's framing. Mode and sequence are validated against allow-lists."""
+
+    focus: Sentence
+    objective: Sentence
+    thinking_type: Literal["new_idea", "evaluation", "problem"]
+    mode: Literal["parallel", "sequential"] = "parallel"
+    sequence: list[ThinkingHatName] = Field(min_length=1, max_length=5)
+    rationale: Annotated[str, StringConstraints(max_length=800)] = ""
