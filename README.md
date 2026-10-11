@@ -22,3 +22,18 @@ sixhats run --file question.txt --format json -o report.json
 ```
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run.
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
+
+## Check against a real model (live tests)
+The normal test suite runs offline with fake models. To check a real model, opt in explicitly:
+```
+# Local OpenAI-compatible server (llama.cpp, Ollama, ...)
+SIXHATS_LIVE=1 SIXHATS_LLM__PROVIDER=local SIXHATS_LLM__MODEL=<model-name> \
+SIXHATS_LLM__LOCAL__BASE_URL=http://127.0.0.1:8080/v1 \
+uv run pytest tests/live -m live --no-cov -s
+
+# Anthropic
+SIXHATS_LIVE=1 SIXHATS_LLM__PROVIDER=anthropic SIXHATS_LLM__ANTHROPIC_API_KEY=<key> \
+uv run pytest tests/live -m live --no-cov -s
+```
+Structured output tries the provider's native schema support first, then falls back to a JSON-mode
+prompt with parsing and validation, so models without schema or tool support still work.
