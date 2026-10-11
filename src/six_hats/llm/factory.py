@@ -11,6 +11,16 @@ class ConfigError(RuntimeError):
     """Raised for missing or invalid model configuration (CLI exit code 3)."""
 
 
+# Models whose API fixes sampling parameters: a non-default temperature is rejected.
+_FIXED_SAMPLING_PREFIXES = ("claude-sonnet-5-5", "claude-fable-5")
+
+
+def _sampling_kwargs(model: str, temperature: float) -> dict[str, float]:
+    if model.startswith(_FIXED_SAMPLING_PREFIXES):
+        return {}
+    return {"temperature": temperature}
+
+
 def create_model(cfg: LLMSettings) -> BaseChatModel:
     if cfg.provider == "anthropic":
         if cfg.anthropic_api_key is None:
@@ -20,9 +30,9 @@ def create_model(cfg: LLMSettings) -> BaseChatModel:
         return ChatAnthropic(
             model=cfg.model,
             api_key=cfg.anthropic_api_key,
-            temperature=cfg.temperature,
             max_retries=cfg.max_retries,
             timeout=cfg.timeout_seconds,
+            **_sampling_kwargs(cfg.model, cfg.temperature),
         )
     if cfg.provider == "local":
         from langchain_openai import ChatOpenAI

@@ -80,3 +80,11 @@ async def test_json_mode_prompt_carries_schema_and_instruction():
     await ainvoke_structured(model, HatOutput, "SYSTEM", "USER")
     assert "SYSTEM" in seen[0] and "JSON Schema" in seen[0] and "key_points" in seen[0]
     assert seen[1] == "USER"
+
+
+async def test_config_value_error_is_a_config_error_not_a_retry():
+    from six_hats.llm.factory import ConfigError
+
+    model = no_structured(GOOD_JSON, error=ValueError("temperature is not supported"))
+    with pytest.raises(ConfigError, match="temperature"):
+        await ainvoke_structured(model, HatOutput, "s", "u")
