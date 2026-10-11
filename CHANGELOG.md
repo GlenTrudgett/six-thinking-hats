@@ -2,6 +2,8 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+
+## [0.2.0] - 2026-10-12
 ### Added
 - Phase 1 foundation: settings, logging, schemas, ModelFactory, structured output, White Hat.
 - Phase 2: prompts for all five hats plus Blue-Open and Blue-Close (versioned), parallel LangGraph
@@ -20,5 +22,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 - The CLI `run` command now runs the full workflow instead of a single hat.
 
 ### Fixed
+- Live runs on claude-sonnet-5-5 and claude-fable-5: temperature is omitted for models with fixed sampling,
+  ChatAnthropic uses json_schema structured output, configuration errors exit with code 3, over-long
+  model lists are trimmed, and Blue-Close prompt is v2. Verified with the live tests.
 - Logging no longer fails when `sys.stderr` is replaced or closed after configuration.
 - CodeQL `init` and `analyze` steps now use the same major version; gitleaks ignores fake test keys.
