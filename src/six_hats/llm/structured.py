@@ -13,6 +13,7 @@ import re
 from collections.abc import Sequence
 from typing import Literal
 
+from langchain_core.exceptions import OutputParserException
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
@@ -104,7 +105,7 @@ async def ainvoke_structured[T: BaseModel](
         while True:
             try:
                 return await _call(method, model, schema, system, extra, user, config)
-            except (ValidationError, _NoJsonError) as exc:
+            except (ValidationError, OutputParserException, _NoJsonError) as exc:
                 last_error = exc
                 failures += 1
                 if failures >= MAX_VALIDATION_ATTEMPTS:
