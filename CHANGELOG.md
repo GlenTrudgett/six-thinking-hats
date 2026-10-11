@@ -9,6 +9,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
   output sanitising, and the `sixhats run` command (text, file or stdin input; output file).
 - Graph tests proving fan-in and a single `blue_close` execution.
 
+### Added (Phase 1 close-out)
+- Structured output tries native schema support, then falls back to JSON mode with parse and validate;
+  one bounded repair retry in total. Auth and connection errors are never swallowed.
+- Loopback integration tests of the local-server path through the real OpenAI client.
+- Opt-in live tests (`SIXHATS_LIVE=1`) for a configured real model.
+
 ### Changed
 - Schemas aligned to the specification (Framing, HatOutput, FailureRecord, FinalReport).
 - The CLI `run` command now runs the full workflow instead of a single hat.
