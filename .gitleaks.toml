@@ -1,0 +1,10 @@
+# Extend the default ruleset; only allowlist fake credentials used as test fixtures.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fake credentials in redaction and settings tests"
+paths = [
+  '''tests/security/test_redaction_and_input\.py''',
+  '''tests/unit/test_settings\.py''',
+]
