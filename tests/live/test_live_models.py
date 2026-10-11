@@ -22,7 +22,10 @@ from six_hats.llm.factory import create_model
 from six_hats.schemas.hat_output import HatOutput
 from tests.support.hats_fake import default_framing
 
+# One event loop for the whole module: the OpenAI client keeps a shared connection pool,
+# and a pooled connection from a closed per-test loop raises "Event loop is closed".
 pytestmark = [
+    pytest.mark.asyncio(loop_scope="module"),
     pytest.mark.live,
     pytest.mark.enable_socket,
     pytest.mark.skipif(os.environ.get("SIXHATS_LIVE") != "1", reason="set SIXHATS_LIVE=1 to run"),
