@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints
 
-from six_hats.schemas.hat_output import ThinkingHatName
+from six_hats.schemas.hat_output import ThinkingHatName, trim_to
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=800)]
 
@@ -19,12 +19,16 @@ class BlueCloseOutput(BaseModel):
     """What Blue-Close (the LLM) writes. Metadata is added in code, never by the model."""
 
     framing_summary: Text
-    hat_summaries: list[HatSummary] = Field(default_factory=list, max_length=5)
-    conclusions: list[Text] = Field(min_length=1, max_length=7)
-    agreements: list[Text] = Field(default_factory=list, max_length=7)
-    tensions: list[Text] = Field(default_factory=list, max_length=7)
-    recommended_next_steps: list[Text] = Field(default_factory=list, max_length=7)
-    open_questions: list[Text] = Field(default_factory=list, max_length=7)
+    hat_summaries: Annotated[list[HatSummary], trim_to(5)] = Field(
+        default_factory=list, max_length=5
+    )
+    conclusions: Annotated[list[Text], trim_to(7)] = Field(min_length=1, max_length=7)
+    agreements: Annotated[list[Text], trim_to(7)] = Field(default_factory=list, max_length=7)
+    tensions: Annotated[list[Text], trim_to(7)] = Field(default_factory=list, max_length=7)
+    recommended_next_steps: Annotated[list[Text], trim_to(7)] = Field(
+        default_factory=list, max_length=7
+    )
+    open_questions: Annotated[list[Text], trim_to(7)] = Field(default_factory=list, max_length=7)
 
 
 class FinalReport(BaseModel):

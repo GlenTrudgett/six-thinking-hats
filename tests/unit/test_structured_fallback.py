@@ -88,3 +88,11 @@ async def test_config_value_error_is_a_config_error_not_a_retry():
     model = no_structured(GOOD_JSON, error=ValueError("temperature is not supported"))
     with pytest.raises(ConfigError, match="temperature"):
         await ainvoke_structured(model, HatOutput, "s", "u")
+
+
+async def test_parser_exception_is_invalid_output_not_config():
+    from langchain_core.exceptions import OutputParserException
+
+    model = no_structured(GOOD_JSON, error=OutputParserException("bad shape"))
+    with pytest.raises(StructuredOutputError):
+        await ainvoke_structured(model, HatOutput, "s", "u")

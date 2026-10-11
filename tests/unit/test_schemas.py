@@ -10,8 +10,7 @@ from six_hats.schemas.report import FinalReport
 def test_hat_output_bounds():
     with pytest.raises(ValidationError):
         HatOutput(hat="white", key_points=["a", "b"])
-    with pytest.raises(ValidationError):
-        HatOutput(hat="white", key_points=list("abcdefgh"))
+    assert len(HatOutput(hat="white", key_points=list("abcdefgh")).key_points) == 7
     assert HatOutput(hat="white", key_points=["a", "b", "c"]).confidence is None
 
 
