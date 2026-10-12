@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from six_hats.schemas.presets import PRESETS
 from six_hats.schemas.report import FinalReport
 from six_hats.security.sanitise import sanitise_text
 
@@ -22,9 +23,19 @@ def render_markdown(report: FinalReport) -> str:
             detail = f" ({f.message})" if f.message else ""
             parts.append(f"> - `{f.node}`{' / ' + f.hat if f.hat else ''}: {f.error_type}{detail}")
     if report.mode == "sequential" and report.sequence:
-        parts.append(
-            "Sequence: " + " → ".join(["Blue", *(h.capitalize() for h in report.sequence), "Blue"])
+        line = "Sequence: " + " → ".join(
+            ["Blue", *(h.capitalize() for h in report.sequence), "Blue"]
         )
+        if report.preset:
+            preset = PRESETS.get(report.preset)
+            name = preset.title if preset else "Custom order"
+            note = (
+                " (source not yet checked against the book)"
+                if report.preset_source == "unverified"
+                else ""
+            )
+            line = f"Preset: {name}{note}  \n{line}"
+        parts.append(line)
     parts += [
         "## Framing",
         sanitise_text(report.framing_summary),

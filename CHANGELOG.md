@@ -2,6 +2,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Added (presets)
+- Seven preset hat sequences (source marked unverified), chosen by Blue-Open or by the caller; `sixhats presets`,
+  `run --preset`, `run --sequence`; report shows the preset used. Blue-Open prompt v3.
 ### Fixed
 - A stray space in the API key (easy to get from a Docker `--env-file`) no longer breaks the request header:
   keys are trimmed, a blank key counts as not set, and a key with inner whitespace is rejected.

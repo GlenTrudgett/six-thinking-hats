@@ -23,6 +23,16 @@ sixhats run --file question.txt --format json -o report.json
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
 
+### Preset sequences
+```
+sixhats presets                                  # list them
+sixhats run "..." --preset choosing_between_alternatives
+sixhats run "..." --sequence white,green,black   # your own order (1-8 steps, hats may repeat)
+```
+Without either option, Blue-Open picks a preset or its own order. The preset orders are **not yet
+checked against de Bono's book** (they are marked "unverified" in the code and in reports).
+Blue always opens and closes; in an evaluation, yellow is placed before black.
+
 ## Troubleshooting
 ```
 sixhats diagnose          # versions and settings, secrets hidden

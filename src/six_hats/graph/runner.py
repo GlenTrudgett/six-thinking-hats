@@ -12,6 +12,7 @@ from six_hats.graph.builder import build_graph
 from six_hats.graph.nodes import ModelResolver
 from six_hats.graph.resilience import DEFAULT_LIMITS, Limits
 from six_hats.observability.logging import get_logger
+from six_hats.schemas.presets import SequenceOverride
 from six_hats.schemas.report import FinalReport
 
 _log = get_logger()
@@ -33,6 +34,7 @@ async def run_workflow(
     max_question_chars: int = 4000,
     recursion_limit: int = 25,
     limits: Limits = DEFAULT_LIMITS,
+    override: SequenceOverride | None = None,
 ) -> FinalReport:
     rid = run_id or new_run_id()
     graph = build_graph(resolve, max_question_chars=max_question_chars, limits=limits)
@@ -42,7 +44,7 @@ async def run_workflow(
 
     report: FinalReport | None = None
     async for update in graph.astream(
-        {"run_id": rid, "question": question}, config, stream_mode="updates"
+        {"run_id": rid, "question": question, "override": override}, config, stream_mode="updates"
     ):
         for node, delta in update.items():
             keys = sorted(delta) if isinstance(delta, dict) else []
