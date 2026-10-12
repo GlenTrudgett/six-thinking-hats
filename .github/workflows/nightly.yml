@@ -1,0 +1,47 @@
+name: Nightly
+# Slow or external checks that should not block every pull request.
+on:
+  schedule:
+    - cron: "43 15 * * *" # 02:43 Sydney time
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - run: uv sync --frozen
+      - run: uv run pytest
+      - run: uv run pip-audit
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: docker build -t sixhats:ci .
+      - name: Runs as non-root, read-only, with no capabilities
+        run: |
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges sixhats:ci version
+          test "$(docker run --rm --entrypoint id sixhats:ci -u)" = "10001"
+      - name: No secrets baked in
+        run: |
+          ! docker run --rm --entrypoint sh sixhats:ci -c 'ls -A /work /app | grep -i "\.env"'
+  live:
+    # Only runs when the repository has an ANTHROPIC_API_KEY secret. Kept separate so a missing
+    # key or an API outage never hides the offline results above.
+    runs-on: ubuntu-latest
+    if: ${{ vars.SIXHATS_NIGHTLY_LIVE == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - run: uv sync --frozen
+      - name: Live tests against the configured model
+        env:
+          SIXHATS_LIVE: "1"
+          SIXHATS_LLM__PROVIDER: anthropic
+          SIXHATS_LLM__ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: uv run pytest tests/live -m live --no-cov
