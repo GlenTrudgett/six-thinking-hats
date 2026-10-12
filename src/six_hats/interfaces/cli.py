@@ -10,6 +10,7 @@ import typer
 
 from six_hats import __version__
 from six_hats.config.settings import load_settings
+from six_hats.graph.resilience import AllHatsFailedError, Limits
 from six_hats.graph.runner import new_run_id, run_workflow
 from six_hats.hats.base import load_prompt
 from six_hats.hats.registry import HATS, PROMPTS_BY_HAT
@@ -21,7 +22,7 @@ from six_hats.security.input_validation import InputError
 
 app = typer.Typer(no_args_is_help=True, help="Six Thinking Hats")
 
-EXIT_OK, EXIT_INTERNAL, EXIT_INPUT, EXIT_CONFIG, EXIT_DEGRADED = 0, 1, 2, 3, 4
+EXIT_OK, EXIT_INTERNAL, EXIT_INPUT, EXIT_CONFIG, EXIT_DEGRADED, EXIT_NO_OUTPUT = 0, 1, 2, 3, 4, 5
 _MAX_FILE_BYTES = 1_000_000
 
 
@@ -93,6 +94,12 @@ def run(
                 lambda _node: model,
                 run_id=run_id,
                 max_question_chars=settings.run.max_input_chars,
+                limits=Limits(
+                    node_timeout_seconds=settings.run.node_timeout_seconds,
+                    node_retries=settings.run.node_retries,
+                    retry_backoff_seconds=settings.run.retry_backoff_seconds,
+                    max_context_chars=settings.run.max_context_chars,
+                ),
             )
         )
     except InputError as exc:
@@ -101,6 +108,8 @@ def run(
         raise _fail("input error: question is not valid UTF-8", EXIT_INPUT) from exc
     except ConfigError as exc:
         raise _fail(f"config error: {exc}", EXIT_CONFIG) from exc
+    except AllHatsFailedError as exc:
+        raise _fail(f"error: {exc}. Check the model and your connection.", EXIT_NO_OUTPUT) from exc
     except StructuredOutputError as exc:
         raise _fail(
             f"error (run {run_id}): a model returned invalid output: {exc}", EXIT_INTERNAL

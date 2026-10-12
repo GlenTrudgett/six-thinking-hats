@@ -102,7 +102,7 @@ def test_config_error_message_has_no_secret(monkeypatch):
     assert runner.invoke(cli.app, ["run", "q"]).exit_code == 3
 
 
-def test_invalid_model_output_exit_1_with_run_id(monkeypatch):
+def test_no_usable_hat_output_exit_5_with_run_id(monkeypatch):
     def responder(kind, hat, messages):
         if kind == "HatOutput":
             return {"hat": hat, "key_points": []}
@@ -110,4 +110,4 @@ def test_invalid_model_output_exit_1_with_run_id(monkeypatch):
 
     _use(monkeypatch, make_hats_fake(responder))
     result = runner.invoke(cli.app, ["run", "q"])
-    assert result.exit_code == 1 and "run " in result.stderr
+    assert result.exit_code == 5 and "run " in result.stderr
