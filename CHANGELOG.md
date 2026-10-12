@@ -3,6 +3,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 ### Added
+- Phase 4c: minimal hardened container image (multi-stage, non-root, no secrets baked in), `.dockerignore`,
+  a container build and security check in CI, a nightly workflow (full suite, pip-audit, image rebuild,
+  optional live tests), and Dependabot for the Dockerfile.
+### Added
 - `sixhats diagnose`: versions, settings and prompt versions with secrets hidden (keys show only as set or
   not set); `--ping` makes one small model call and reports the result. Exit 3 for bad config, 5 if the ping fails.
 ### Added
