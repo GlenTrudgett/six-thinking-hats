@@ -3,6 +3,17 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 ### Added
+- Phase 4a, resilience: every model node runs with a timeout and bounded retries of transient errors
+  (timeouts, dropped connections, 408/429/5xx). A failed hat becomes a failure record and a degraded
+  report, not a crash. Blue-Open failure falls back to a default framing (all five hats, parallel);
+  Blue-Close failure falls back to a report built in code from the hats' own words. In sequential mode a
+  failed step is skipped and later hats continue.
+- The report lists `failures` (node, hat, error type, attempts, HTTP status only; never prompt or reply text).
+- Sequential context is capped (`SIXHATS_RUN__MAX_CONTEXT_CHARS`, oldest steps dropped first).
+- New settings: `SIXHATS_RUN__NODE_TIMEOUT_SECONDS`, `NODE_RETRIES`, `RETRY_BACKOFF_SECONDS`.
+- Exit code 5: no hat produced any output, so there is nothing to report on.
+- Configuration errors are never degraded: they stop the run (exit 3).
+### Added
 - Phase 3, sequential mode: when Blue-Open chooses `mode: sequential`, the hats run one at a time in its
   sequence and each sees the earlier hats' output (as a delimited data block). A hat may repeat
   (up to 8 steps); each step is kept (`white`, `white#2`). Hats left out of a sequence are not "missing".

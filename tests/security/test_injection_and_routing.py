@@ -2,7 +2,6 @@ import pytest
 
 from six_hats.graph.routing import route_after_blue_open
 from six_hats.graph.runner import run_workflow
-from six_hats.llm.structured import StructuredOutputError
 from six_hats.schemas.hat_output import THINKING_HATS
 from tests.support.hats_fake import default_response, make_hats_fake
 
@@ -48,9 +47,11 @@ async def test_hostile_blue_open_values_are_rejected(bad_framing):
         return bad_framing if kind == "Framing" else default_response(kind, hat, messages)
 
     model = make_hats_fake(responder)
-    with pytest.raises(StructuredOutputError):
-        await run_workflow("q", lambda _n: model, run_id="host")
-    assert not any(c[0] == "HatOutput" for c in model.calls)
+    report = await run_workflow("q", lambda _n: model, run_id="host")
+    # the hostile framing is rejected; the default framing runs only the five known hats
+    assert report.degraded and report.failures[0].node == "blue_open"
+    hats = sorted(c[1] for c in model.calls if c[0] == "HatOutput")
+    assert hats == ["black", "green", "red", "white", "yellow"]
 
 
 async def test_hostile_report_text_is_sanitised_on_display():

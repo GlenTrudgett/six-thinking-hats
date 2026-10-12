@@ -18,6 +18,9 @@ def render_markdown(report: FinalReport) -> str:
     if report.degraded:
         missing = ", ".join(report.missing_perspectives) or "unknown"
         parts.append(f"> **Degraded run.** Missing perspectives: {missing}.")
+        for f in report.failures:
+            detail = f" ({f.message})" if f.message else ""
+            parts.append(f"> - `{f.node}`{' / ' + f.hat if f.hat else ''}: {f.error_type}{detail}")
     if report.mode == "sequential" and report.sequence:
         parts.append(
             "Sequence: " + " → ".join(["Blue", *(h.capitalize() for h in report.sequence), "Blue"])

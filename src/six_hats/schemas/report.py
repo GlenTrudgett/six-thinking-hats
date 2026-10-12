@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from six_hats.schemas.failures import FailureRecord
 from six_hats.schemas.hat_output import ThinkingHatName, trim_to
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=800)]
@@ -44,6 +45,7 @@ class FinalReport(BaseModel):
     mode: Literal["parallel", "sequential"] = "parallel"
     sequence: list[ThinkingHatName] = Field(default_factory=list)
     degraded: bool = False
+    failures: list[FailureRecord] = Field(default_factory=list)
     models_used: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
     prompt_versions: dict[str, str] = Field(default_factory=dict)

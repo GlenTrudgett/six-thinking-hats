@@ -100,19 +100,17 @@ async def test_intake_rejects_bad_input_before_any_model_call():
     assert model.calls == []
 
 
-async def test_blue_open_failure_stops_the_run_in_phase_2():
-    """Fallback defaults for Blue-Open are phase 4 (FR-06); until then a failure is loud."""
-    from six_hats.llm.structured import StructuredOutputError
-
+async def test_blue_open_failure_falls_back_to_default_framing():
     def responder(kind, hat, messages):
         if kind == "Framing":
             return {"focus": "f", "objective": "o", "thinking_type": "x", "sequence": ["purple"]}
         return default_response(kind, hat, messages)
 
     model = make_hats_fake(responder)
-    with pytest.raises(StructuredOutputError):
-        await run_workflow(Q, lambda _n: model, run_id="r9")
-    assert all(k == "Framing" for k in _kinds(model))  # no hat ran
+    report = await run_workflow(Q, lambda _n: model, run_id="r9")
+    assert report.degraded and report.mode == "parallel"
+    assert [f.node for f in report.failures] == ["blue_open"]
+    assert sorted(c[1] for c in model.calls if c[0] == "HatOutput") == sorted(THINKING_HATS)
 
 
 def test_no_checkpointer_attached_by_default():

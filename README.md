@@ -20,7 +20,7 @@ sixhats run "Should we adopt a four-day week?"
 echo "my question" | sixhats run -          # keeps it out of shell history
 sixhats run --file question.txt --format json -o report.json
 ```
-Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run.
+Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
 
 ## Check against a real model (live tests)

@@ -10,6 +10,7 @@ from langchain_core.runnables import RunnableConfig
 
 from six_hats.graph.builder import build_graph
 from six_hats.graph.nodes import ModelResolver
+from six_hats.graph.resilience import DEFAULT_LIMITS, Limits
 from six_hats.observability.logging import get_logger
 from six_hats.schemas.report import FinalReport
 
@@ -31,9 +32,10 @@ async def run_workflow(
     run_id: str | None = None,
     max_question_chars: int = 4000,
     recursion_limit: int = 25,
+    limits: Limits = DEFAULT_LIMITS,
 ) -> FinalReport:
     rid = run_id or new_run_id()
-    graph = build_graph(resolve, max_question_chars=max_question_chars)
+    graph = build_graph(resolve, max_question_chars=max_question_chars, limits=limits)
     usage = UsageMetadataCallbackHandler()
     config: RunnableConfig = {"callbacks": [usage], "recursion_limit": recursion_limit}
     _log.info("run.started", run_id=rid)

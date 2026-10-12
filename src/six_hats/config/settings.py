@@ -49,6 +49,10 @@ class LLMSettings(BaseModel):
 class RunSettings(BaseModel):
     max_input_chars: int = Field(default=8000, gt=0)
     mode: Literal["parallel", "sequential"] = "parallel"
+    node_timeout_seconds: float = Field(default=120.0, gt=0)
+    node_retries: int = Field(default=1, ge=0, le=5)
+    retry_backoff_seconds: float = Field(default=1.0, ge=0)
+    max_context_chars: int = Field(default=24_000, ge=1000)
 
 
 class Settings(BaseSettings):
