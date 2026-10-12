@@ -14,24 +14,61 @@ uv run ruff check . && uv run mypy src && uv run bandit -r src
 uv run sixhats hats
 ```
 
-## Use
+## Commands
+
+| Command | What it does |
+|---|---|
+| `sixhats run QUESTION` | Run the workflow and print the report |
+| `sixhats presets` | List the preset hat sequences |
+| `sixhats hats` | List the hats, their roles and prompt versions |
+| `sixhats diagnose [--ping]` | Show versions and settings (secrets hidden); `--ping` tests the model |
+| `sixhats version` | Print the version |
+
+### `sixhats run`
 ```
 sixhats run "Should we adopt a four-day week?"
 echo "my question" | sixhats run -          # keeps it out of shell history
 sixhats run --file question.txt --format json -o report.json
 ```
+
+| Option | Meaning |
+|---|---|
+| `QUESTION` | The question, or `-` to read standard input |
+| `--file`, `-f PATH` | Read the question from a file (under 1 MB; not together with QUESTION) |
+| `--format markdown\|json` | Report format (default markdown) |
+| `--output`, `-o PATH` | Write the report to a file; add `--force` to overwrite |
+| `--preset ID` | Use a preset hat sequence (see below) |
+| `--sequence a,b,c` | Use your own order of hats |
+
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
 
 ### Preset sequences
 ```
-sixhats presets                                  # list them
-sixhats run "..." --preset choosing_between_alternatives
-sixhats run "..." --sequence white,green,black   # your own order (1-8 steps, hats may repeat)
+sixhats presets
+sixhats run "Which vendor should we pick?" --preset choosing_between_alternatives
+sixhats run "..." --sequence white,green,black   # 1-8 steps; hats may repeat
 ```
-Without either option, Blue-Open picks a preset or its own order. The preset orders are **not yet
-checked against de Bono's book** (they are marked "unverified" in the code and in reports).
-Blue always opens and closes; in an evaluation, yellow is placed before black.
+Presets (Blue opens and closes every one):
+
+| Id | Order |
+|---|---|
+| `initial_ideas` | white → green |
+| `choosing_between_alternatives` | white → green → yellow → black → red |
+| `identifying_solutions` | white → black → green |
+| `quick_feedback` | black → green |
+| `process_improvement` | white → white → yellow → black → green → red |
+| `problem_solving` | white → green → red → yellow → black → green |
+| `performance_review` | red → white → yellow → black → green → red |
+
+How the order is decided: `--preset` or `--sequence` wins. Otherwise Blue-Open may choose a preset (its
+order then comes from code, not the model) or propose its own order. A preset or sequence runs the hats
+one at a time, each seeing what came before. `--preset` and `--sequence` cannot be combined, and
+`--sequence` accepts only `white`, `red`, `green`, `yellow`, `black`. In an evaluation, yellow is placed
+before black. The report names the preset used.
+
+The preset orders are **not yet checked against de Bono's book** and are marked "unverified" in the
+code and in reports.
 
 ## Troubleshooting
 ```
