@@ -10,7 +10,7 @@ import typer
 from pydantic import ValidationError
 
 from six_hats import __version__
-from six_hats.config.settings import load_settings
+from six_hats.config.settings import Settings, load_settings
 from six_hats.graph.resilience import AllHatsFailedError, Limits
 from six_hats.graph.runner import new_run_id, run_workflow
 from six_hats.hats.base import load_prompt
@@ -36,6 +36,17 @@ class OutputFormat(StrEnum):
 def _fail(message: str, code: int) -> typer.Exit:
     typer.echo(message, err=True)
     return typer.Exit(code)
+
+
+def _load_settings_or_exit() -> Settings:
+    try:
+        return load_settings()
+    except ValidationError as exc:
+        # Show where and why, never the offending value (it could be a secret).
+        for err in exc.errors():
+            where = ".".join(str(p) for p in err["loc"])
+            typer.echo(f"config error: {where}: {err['msg']}", err=True)
+        raise typer.Exit(EXIT_CONFIG) from exc
 
 
 def _read_question(question: str | None, file: Path | None) -> str:
@@ -73,15 +84,7 @@ def diagnose(
     ] = False,
 ) -> None:
     """Show versions and settings (secrets hidden) and optionally test the model connection."""
-    try:
-        settings = load_settings()
-    except ValidationError as exc:
-        # Show where and why, never the offending value (it could be a secret).
-        for err in exc.errors():
-            typer.echo(
-                f"config error: {'.'.join(str(p) for p in err['loc'])}: {err['msg']}", err=True
-            )
-        raise typer.Exit(EXIT_CONFIG) from exc
+    settings = _load_settings_or_exit()
     for name, value in diag.collect(settings):
         typer.echo(f"{name:26} {value}")
     issues = diag.problems(settings)
@@ -112,7 +115,7 @@ def run(
 ) -> None:
     """Run the six-hats workflow on a question and print the report."""
     run_id = new_run_id()
-    settings = load_settings()
+    settings = _load_settings_or_exit()
     configure_logging(settings.log_level, settings.log_json)
     typer.echo(f"run: {run_id}", err=True)
     try:

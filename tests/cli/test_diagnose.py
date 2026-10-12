@@ -66,3 +66,11 @@ async def test_ping_reports_timeout():
     ok, detail = await ping(Slow(), timeout=0.05)  # type: ignore[arg-type]
     assert not ok and "TimeoutError" in detail
     assert make_hats_fake() is not None
+
+
+def test_run_with_bad_settings_exits_3_and_never_prints_the_key(monkeypatch):
+    monkeypatch.setenv("SIXHATS_LLM__ANTHROPIC_API_KEY", "sk-ant-has space123456")
+    result = runner.invoke(cli.app, ["run", "q"])
+    assert result.exit_code == 3
+    assert "space123456" not in result.output + result.stderr
+    assert "anthropic_api_key" in result.stderr
