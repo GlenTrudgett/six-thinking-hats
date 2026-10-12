@@ -17,3 +17,12 @@ jobs:
       - run: uv run mypy src
       - run: uv run bandit -q -r src
       - run: uv run pytest
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t sixhats:ci .
+      - name: Runs as non-root, read-only, with no capabilities
+        run: |
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges sixhats:ci version
+          test "$(docker run --rm --entrypoint id sixhats:ci -u)" = "10001"
