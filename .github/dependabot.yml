@@ -9,3 +9,8 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule: { interval: weekly }
+    ignore:
+      # The project supports Python 3.13 only (requires-python < 3.14). Move the image
+      # together with pyproject.toml, never on its own.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
