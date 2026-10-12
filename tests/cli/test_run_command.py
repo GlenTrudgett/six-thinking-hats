@@ -25,7 +25,7 @@ def test_version_and_hats():
     out = runner.invoke(cli.app, ["hats"]).output
     for hat in ("white", "red", "green", "yellow", "black", "blue"):
         assert hat in out
-    assert "blue_open v1" in out and "blue_close v2" in out
+    assert "blue_open v2" in out and "blue_close v2" in out
 
 
 def test_run_markdown_text_argument(monkeypatch):

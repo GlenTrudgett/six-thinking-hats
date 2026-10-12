@@ -10,12 +10,13 @@ from typing import Any, Protocol
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig
 
+from six_hats.graph.sequence import apply_sequence_rules, step_key
 from six_hats.graph.state import GraphState
 from six_hats.hats.base import brief_block, data_block, load_prompt, run_hat
 from six_hats.llm.structured import ainvoke_structured
 from six_hats.observability.logging import get_logger
 from six_hats.schemas.framing import Framing
-from six_hats.schemas.hat_output import THINKING_HATS, ThinkingHatName
+from six_hats.schemas.hat_output import THINKING_HATS, HatOutput, ThinkingHatName
 from six_hats.schemas.report import BlueCloseOutput, FinalReport, HatSummary
 from six_hats.security.input_validation import validate_request
 
@@ -53,6 +54,11 @@ def make_blue_open(resolve: ModelResolver) -> Node:
             data_block("question", state["question"]),
             config=config,
         )
+        framing, adjusted = apply_sequence_rules(framing)
+        if adjusted:
+            _log.info(
+                "framing.sequence_adjusted", run_id=state["run_id"], sequence=framing.sequence
+            )
         _log.info(
             "framing.completed",
             run_id=state["run_id"],
@@ -83,11 +89,43 @@ def make_hat(hat: ThinkingHatName, resolve: ModelResolver) -> Node:
     return hat_node
 
 
+def make_sequential(resolve: ModelResolver) -> Node:
+    """Run the framing's sequence one hat at a time; each hat sees what came before."""
+
+    async def sequential(state: GraphState, config: RunnableConfig) -> dict[str, Any]:
+        framing = state["framing"]
+        done: list[tuple[str, HatOutput]] = []
+        order: list[ThinkingHatName] = []
+        for hat in framing.sequence:
+            start = time.perf_counter()
+            key = step_key(hat, order)
+            output = await run_hat(
+                hat, resolve(hat), state["question"], framing, config, earlier=list(done)
+            )
+            order.append(hat)
+            done.append((key, output))
+            _log.info(
+                "node.completed",
+                node="sequential",
+                hat=hat,
+                step=len(order),
+                run_id=state["run_id"],
+                prompt_version=load_prompt(hat).version,
+                duration_ms=_ms(start),
+            )
+        return {"outputs": dict(done)}
+
+    return sequential
+
+
 def make_blue_close(resolve: ModelResolver) -> Node:
     async def blue_close(state: GraphState, config: RunnableConfig) -> dict[str, Any]:
         start = time.perf_counter()
         outputs = state.get("outputs", {})
-        missing = [h for h in THINKING_HATS if h not in outputs]
+        framing = state["framing"]
+        expected = set(framing.sequence) if framing.mode == "sequential" else set(THINKING_HATS)
+        present = {o.hat for o in outputs.values()}
+        missing = [h for h in THINKING_HATS if h in expected and h not in present]
         hat_outputs = json.dumps(
             {h: o.model_dump(exclude={"hat"}) for h, o in outputs.items()}, indent=2
         )
@@ -120,7 +158,9 @@ def _assemble_report(
     run_id: str, closing: BlueCloseOutput, missing: list[ThinkingHatName], state: GraphState
 ) -> FinalReport:
     """Metadata comes from code, never from the model."""
-    present = set(state.get("outputs", {}))
+    framing = state.get("framing")
+    sequential = framing is not None and framing.mode == "sequential"
+    present = {o.hat for o in state.get("outputs", {}).values()}
     summaries = [s for s in closing.hat_summaries if s.hat in present]
     seen: set[str] = set()
     unique: list[HatSummary] = []
@@ -139,6 +179,8 @@ def _assemble_report(
         recommended_next_steps=closing.recommended_next_steps,
         open_questions=closing.open_questions,
         missing_perspectives=missing,
+        mode="sequential" if sequential else "parallel",
+        sequence=list(framing.sequence) if framing is not None and sequential else [],
         degraded=bool(missing or state.get("failures")),
         prompt_versions=versions,
     )

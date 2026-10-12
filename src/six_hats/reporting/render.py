@@ -18,6 +18,10 @@ def render_markdown(report: FinalReport) -> str:
     if report.degraded:
         missing = ", ".join(report.missing_perspectives) or "unknown"
         parts.append(f"> **Degraded run.** Missing perspectives: {missing}.")
+    if report.mode == "sequential" and report.sequence:
+        parts.append(
+            "Sequence: " + " → ".join(["Blue", *(h.capitalize() for h in report.sequence), "Blue"])
+        )
     parts += [
         "## Framing",
         sanitise_text(report.framing_summary),

@@ -6,6 +6,9 @@ from six_hats.graph.state import GraphState
 from six_hats.schemas.hat_output import THINKING_HATS
 
 
-def route_after_blue_open(_state: GraphState) -> list[str]:
-    """Phase 2 runs every hat in parallel. Phase 3 adds sequential mode here."""
+def route_after_blue_open(state: GraphState) -> list[str]:
+    """Parallel mode fans out to the five hats; sequential mode runs one node that walks it."""
+    framing = state.get("framing")
+    if getattr(framing, "mode", None) == "sequential":
+        return ["sequential"]
     return list(THINKING_HATS)

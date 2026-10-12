@@ -2,6 +2,15 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Added
+- Phase 3, sequential mode: when Blue-Open chooses `mode: sequential`, the hats run one at a time in its
+  sequence and each sees the earlier hats' output (as a delimited data block). A hat may repeat
+  (up to 8 steps); each step is kept (`white`, `white#2`). Hats left out of a sequence are not "missing".
+- Deterministic sequence rule from de Bono (Penguin ed., ch. 3): in an evaluation, yellow goes before black.
+- The report records `mode` and `sequence`; Markdown shows "Sequence: Blue → ... → Blue".
+
+### Changed
+- `blue_open` prompt is v2 (sequence guidance and repeats).
 
 ## [0.2.0] - 2026-10-12
 ### Added
