@@ -20,6 +20,7 @@ from six_hats.llm.factory import ConfigError, create_model
 from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import configure_logging
 from six_hats.reporting.render import render_json, render_markdown
+from six_hats.schemas.presets import PRESETS, SequenceOverride
 from six_hats.security.input_validation import InputError
 
 app = typer.Typer(no_args_is_help=True, help="Six Thinking Hats")
@@ -78,6 +79,37 @@ def hats() -> None:
 
 
 @app.command()
+def presets() -> None:
+    """List the preset hat sequences (their sources are not yet checked against the book)."""
+    for p in PRESETS.values():
+        typer.echo(f"{p.id}  [{p.source}]")
+        typer.echo(f"  {p.title}: {' → '.join(p.sequence)}")
+        typer.echo(f"  use when: {p.use_when}")
+
+
+_HAT_NAMES = {"white", "red", "green", "yellow", "black"}
+
+
+def _build_override(preset: str | None, sequence: str | None) -> SequenceOverride | None:
+    if preset is not None and sequence is not None:
+        raise InputError("give either --preset or --sequence, not both")
+    if preset is not None:
+        if preset not in PRESETS:
+            raise InputError(f"unknown preset '{preset}'; run 'sixhats presets' to list them")
+        return SequenceOverride.model_validate({"preset": preset})
+    if sequence is not None:
+        names = [n.strip().lower() for n in sequence.split(",") if n.strip()]
+        bad = [n for n in names if n not in _HAT_NAMES]
+        if bad or not names:
+            raise InputError("--sequence needs comma-separated hats: white,red,green,yellow,black")
+        try:
+            return SequenceOverride.model_validate({"sequence": names})
+        except ValidationError as exc:
+            raise InputError("--sequence must have between 1 and 8 hats") from exc
+    return None
+
+
+@app.command()
 def diagnose(
     ping: Annotated[
         bool, typer.Option("--ping", help="Make one small call to the model to prove it works.")
@@ -112,6 +144,12 @@ def run(
         Path | None, typer.Option("--output", "-o", help="Write the report to a file.")
     ] = None,
     force: Annotated[bool, typer.Option("--force", help="Overwrite the output file.")] = False,
+    preset: Annotated[
+        str | None, typer.Option("--preset", help="Use a preset sequence (see 'presets').")
+    ] = None,
+    sequence: Annotated[
+        str | None, typer.Option("--sequence", help="Own order, e.g. white,green,black.")
+    ] = None,
 ) -> None:
     """Run the six-hats workflow on a question and print the report."""
     run_id = new_run_id()
@@ -119,6 +157,7 @@ def run(
     configure_logging(settings.log_level, settings.log_json)
     typer.echo(f"run: {run_id}", err=True)
     try:
+        override = _build_override(preset, sequence)
         text = _read_question(question, file)
         if output is not None and output.exists() and not force:
             raise InputError(f"{output} exists; use --force to overwrite")
@@ -129,6 +168,7 @@ def run(
                 lambda _node: model,
                 run_id=run_id,
                 max_question_chars=settings.run.max_input_chars,
+                override=override,
                 limits=Limits(
                     node_timeout_seconds=settings.run.node_timeout_seconds,
                     node_retries=settings.run.node_retries,

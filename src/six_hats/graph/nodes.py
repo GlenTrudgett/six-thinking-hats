@@ -11,7 +11,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig
 
 from six_hats.graph.resilience import DEFAULT_LIMITS, AllHatsFailedError, Limits, run_guarded
-from six_hats.graph.sequence import apply_sequence_rules, step_key
+from six_hats.graph.sequence import resolve_order, step_key
 from six_hats.graph.state import GraphState
 from six_hats.hats.base import brief_block, data_block, load_prompt, run_hat
 from six_hats.llm.structured import ainvoke_structured
@@ -19,6 +19,7 @@ from six_hats.observability.logging import get_logger
 from six_hats.schemas.failures import FailureRecord
 from six_hats.schemas.framing import Framing
 from six_hats.schemas.hat_output import THINKING_HATS, HatOutput, ThinkingHatName
+from six_hats.schemas.presets import PRESETS, describe_presets
 from six_hats.schemas.report import BlueCloseOutput, FinalReport, HatSummary
 from six_hats.security.input_validation import validate_request
 
@@ -61,11 +62,13 @@ def make_blue_open(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> N
     async def blue_open(state: GraphState, config: RunnableConfig) -> dict[str, Any]:
         start = time.perf_counter()
         prompt = load_prompt("blue_open")
+        system = prompt.text.replace("{{presets}}", describe_presets())
+        override = state.get("override")
         framing, failure = await run_guarded(
             lambda: ainvoke_structured(
                 resolve("blue_open"),
                 Framing,
-                prompt.text,
+                system,
                 data_block("question", state["question"]),
                 config=config,
             ),
@@ -74,13 +77,17 @@ def make_blue_open(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> N
             run_id=state["run_id"],
         )
         if framing is None:
-            fallback = fallback_framing(state["question"])
+            fallback, _how = resolve_order(fallback_framing(state["question"]), override)
             _log.info("framing.completed", run_id=state["run_id"], source="fallback")
             return {"framing": fallback, "failures": [failure] if failure else []}
-        framing, adjusted = apply_sequence_rules(framing)
-        if adjusted:
+        framing, how = resolve_order(framing, override)
+        if how != "unchanged":
             _log.info(
-                "framing.sequence_adjusted", run_id=state["run_id"], sequence=framing.sequence
+                "framing.order_resolved",
+                run_id=state["run_id"],
+                how=how,
+                preset=framing.preset,
+                sequence=framing.sequence,
             )
         _log.info(
             "framing.completed",
@@ -269,6 +276,12 @@ def _assemble_report(
         open_questions=closing.open_questions,
         missing_perspectives=missing,
         mode="sequential" if sequential else "parallel",
+        preset=framing.preset if framing is not None and sequential else None,
+        preset_source=(
+            PRESETS[framing.preset].source
+            if framing is not None and sequential and framing.preset in PRESETS
+            else None
+        ),
         sequence=list(framing.sequence) if framing is not None and sequential else [],
         degraded=bool(missing or failures),
         failures=failures,

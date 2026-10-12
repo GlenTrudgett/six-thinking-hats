@@ -8,8 +8,11 @@ A hat may appear more than once, so each step gets its own key.
 
 from __future__ import annotations
 
+from typing import Any
+
 from six_hats.schemas.framing import Framing
 from six_hats.schemas.hat_output import ThinkingHatName
+from six_hats.schemas.presets import CUSTOM, PRESETS, SequenceOverride
 
 
 def step_key(hat: ThinkingHatName, earlier: list[ThinkingHatName]) -> str:
@@ -27,3 +30,30 @@ def apply_sequence_rules(framing: Framing) -> tuple[Framing, bool]:
             seq[y], seq[b] = seq[b], seq[y]
     changed = seq != list(framing.sequence)
     return (framing.model_copy(update={"sequence": seq}) if changed else framing), changed
+
+
+def resolve_order(framing: Framing, override: SequenceOverride | None) -> tuple[Framing, str]:
+    """Settle the final order. Returns the framing and how the order was decided:
+    "override", "preset", "rules" (the model's own order, adjusted) or "unchanged".
+
+    A caller's override beats Blue-Open. A preset id chosen by Blue-Open is expanded from code,
+    so the model cannot alter a preset's order. Anything else is Blue-Open's own sequence
+    plus the rules.
+    """
+    if override is not None:
+        name: str
+        if override.preset is not None:
+            preset = PRESETS[override.preset]
+            name, order = preset.id, list(preset.sequence)
+        else:
+            name, order = CUSTOM, list(override.sequence or [])
+        update: dict[str, Any] = {"preset": name, "sequence": order, "mode": "sequential"}
+        return framing.model_copy(update=update), "override"
+    if framing.preset in PRESETS:
+        preset = PRESETS[framing.preset]
+        return (
+            framing.model_copy(update={"sequence": list(preset.sequence), "mode": "sequential"}),
+            "preset",
+        )
+    fixed, changed = apply_sequence_rules(framing)
+    return fixed, "rules" if changed else "unchanged"
