@@ -125,7 +125,7 @@ def test_graph_topology():
     nodes = set(g.nodes)
     assert {"intake", "blue_open", "blue_close", *THINKING_HATS} <= nodes
     into_close = {e.source for e in g.edges if e.target == "blue_close"}
-    assert into_close == set(THINKING_HATS)
+    assert into_close == {*THINKING_HATS, "sequential"}
 
 
 async def test_streaming_updates_expose_no_private_channels(capsys):

@@ -9,6 +9,7 @@ from six_hats.graph.nodes import (
     make_blue_open,
     make_hat,
     make_intake,
+    make_sequential,
 )
 from six_hats.graph.routing import route_after_blue_open
 from six_hats.graph.state import GraphState
@@ -16,7 +17,7 @@ from six_hats.schemas.hat_output import THINKING_HATS
 
 
 def build_graph(resolve: ModelResolver, *, max_question_chars: int = 4000) -> CompiledStateGraph:  # type: ignore[type-arg]
-    """intake -> blue_open -> (five hats in parallel) -> blue_close.
+    """intake -> blue_open -> (five hats in parallel | sequential walker) -> blue_close.
 
     Each node uses static edges or conditional routing, never both. No checkpointer is attached.
     """
@@ -25,12 +26,14 @@ def build_graph(resolve: ModelResolver, *, max_question_chars: int = 4000) -> Co
     graph.add_node("blue_open", make_blue_open(resolve))
     for hat in THINKING_HATS:
         graph.add_node(hat, make_hat(hat, resolve))
+    graph.add_node("sequential", make_sequential(resolve))
     graph.add_node("blue_close", make_blue_close(resolve))
 
     graph.add_edge(START, "intake")
     graph.add_edge("intake", "blue_open")
-    graph.add_conditional_edges("blue_open", route_after_blue_open, list(THINKING_HATS))
+    graph.add_conditional_edges("blue_open", route_after_blue_open, [*THINKING_HATS, "sequential"])
     for hat in THINKING_HATS:
         graph.add_edge(hat, "blue_close")
+    graph.add_edge("sequential", "blue_close")
     graph.add_edge("blue_close", END)
     return graph.compile()

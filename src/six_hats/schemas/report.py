@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
@@ -41,6 +41,8 @@ class FinalReport(BaseModel):
     recommended_next_steps: list[str] = Field(default_factory=list)
     open_questions: list[str] = Field(default_factory=list)
     missing_perspectives: list[ThinkingHatName] = Field(default_factory=list)
+    mode: Literal["parallel", "sequential"] = "parallel"
+    sequence: list[ThinkingHatName] = Field(default_factory=list)
     degraded: bool = False
     models_used: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
