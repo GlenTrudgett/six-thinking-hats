@@ -2,42 +2,38 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
-### Added (presets)
-- Seven preset hat sequences (source marked unverified), chosen by Blue-Open or by the caller; `sixhats presets`,
-  `run --preset`, `run --sequence`; report shows the preset used. Blue-Open prompt v3.
-### Fixed
-- A stray space in the API key (easy to get from a Docker `--env-file`) no longer breaks the request header:
-  keys are trimmed, a blank key counts as not set, and a key with inner whitespace is rejected.
-- Settings errors never echo the offending value, so a bad key can't leak into an error message; `run`
-  reports them as exit 3, the same as `diagnose`.
-- `diagnose --ping` shows the underlying error types for a failed call.
+
+## [1.0.0] - 2026-10-12
+First stable release. Verified live on Claude (claude-sonnet-5-5) and a local llama.cpp server, and in the
+container.
+
 ### Added
-- Phase 4c: minimal hardened container image (multi-stage, non-root, no secrets baked in), `.dockerignore`,
-  a container build and security check in CI, a nightly workflow (full suite, pip-audit, image rebuild,
-  optional live tests), and Dependabot for the Dockerfile.
-### Added
-- `sixhats diagnose`: versions, settings and prompt versions with secrets hidden (keys show only as set or
-  not set); `--ping` makes one small model call and reports the result. Exit 3 for bad config, 5 if the ping fails.
-### Added
-- Phase 4a, resilience: every model node runs with a timeout and bounded retries of transient errors
-  (timeouts, dropped connections, 408/429/5xx). A failed hat becomes a failure record and a degraded
-  report, not a crash. Blue-Open failure falls back to a default framing (all five hats, parallel);
-  Blue-Close failure falls back to a report built in code from the hats' own words. In sequential mode a
-  failed step is skipped and later hats continue.
-- The report lists `failures` (node, hat, error type, attempts, HTTP status only; never prompt or reply text).
-- Sequential context is capped (`SIXHATS_RUN__MAX_CONTEXT_CHARS`, oldest steps dropped first).
-- New settings: `SIXHATS_RUN__NODE_TIMEOUT_SECONDS`, `NODE_RETRIES`, `RETRY_BACKOFF_SECONDS`.
-- Exit code 5: no hat produced any output, so there is nothing to report on.
-- Configuration errors are never degraded: they stop the run (exit 3).
-### Added
-- Phase 3, sequential mode: when Blue-Open chooses `mode: sequential`, the hats run one at a time in its
-  sequence and each sees the earlier hats' output (as a delimited data block). A hat may repeat
-  (up to 8 steps); each step is kept (`white`, `white#2`). Hats left out of a sequence are not "missing".
-- Deterministic sequence rule from de Bono (Penguin ed., ch. 3): in an evaluation, yellow goes before black.
-- The report records `mode` and `sequence`; Markdown shows "Sequence: Blue → ... → Blue".
+- Sequential mode (phase 3): when Blue-Open chooses `mode: sequential`, the hats run one at a time in its
+  sequence and each sees the earlier hats' output (as a delimited data block). A hat may repeat (up to
+  8 steps); each step is kept (`white`, `white#2`). Hats left out of a sequence are not "missing".
+  In an evaluation, code puts yellow before black (de Bono, Penguin ed., ch. 3). The report records
+  `mode` and `sequence`.
+- Resilience (phase 4a): every model node has a timeout and bounded retries of transient errors. A failed
+  hat becomes a failure record and a degraded report, not a crash. Blue-Open failure falls back to a
+  default framing; Blue-Close failure falls back to a report built in code. In sequential mode a failed
+  step is skipped. The report lists `failures` (node, hat, error type, attempts, HTTP status only).
+  Sequential context is capped. New settings: `SIXHATS_RUN__NODE_TIMEOUT_SECONDS`, `NODE_RETRIES`,
+  `RETRY_BACKOFF_SECONDS`, `MAX_CONTEXT_CHARS`.
+- `sixhats diagnose`: versions, settings and prompt versions with secrets hidden; `--ping` makes one small
+  model call and shows the underlying error types if it fails.
+- Exit code 5: no hat produced any output, so there is nothing to report on. Full set: 0 ok, 1 internal,
+  2 input, 3 configuration, 4 degraded, 5 no model output.
+- Minimal hardened container image (multi-stage, non-root, no secrets baked in), a container check in CI,
+  a nightly workflow (full suite, pip-audit, image rebuild, optional live tests), Dependabot for the
+  Dockerfile (Python bumps held until `pyproject.toml` moves).
 
 ### Changed
 - `blue_open` prompt is v2 (sequence guidance and repeats).
+
+### Fixed
+- API keys are trimmed, a blank key counts as not set, and a key with inner whitespace is rejected.
+  A trailing space in `.env` used with `docker --env-file` previously surfaced as a connection error.
+- Settings errors never echo the offending value; `run` reports them as exit 3.
 
 ## [0.2.0] - 2026-10-12
 ### Added

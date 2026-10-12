@@ -4,7 +4,7 @@ Edward de Bono's *Six Thinking Hats* (ISBN 0-14-029666-2) as a LangGraph multi-a
 An administrator frames the request, runs the six hats, and collates a final report.
 LLM-agnostic via LangChain (Anthropic and local OpenAI-compatible servers supported).
 
-**Status:** Phase 4 complete (parallel and sequential modes, resilience, diagnose, container). Release 1.0 follows live verification. See CHANGELOG.md.
+**Status:** 1.0.0. Parallel and sequential modes, resilience, diagnose and a hardened container. See CHANGELOG.md.
 
 ## Develop
 ```
