@@ -56,6 +56,23 @@ def test_ping_success_and_failure_exit_codes(monkeypatch):
     assert bad.exit_code == 5 and "HttpError HTTP 401" in bad.output
 
 
+async def test_ping_shows_underlying_error_types_not_messages():
+    class Inner(OSError): ...
+
+    class Outer(Exception): ...
+
+    class Broken:
+        async def ainvoke(self, _p):
+            try:
+                raise Inner("secret host sk-abcdefgh12345678")
+            except Inner as inner:
+                raise Outer("wrapped") from inner
+
+    ok, detail = await ping(Broken())  # type: ignore[arg-type]
+    assert not ok and detail == "Outer <- Inner"
+    assert "secret" not in detail
+
+
 async def test_ping_reports_timeout():
     import asyncio
 
