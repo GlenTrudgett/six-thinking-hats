@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pydantic import ValidationError
 
 from six_hats import __version__
 from six_hats.config.settings import load_settings
@@ -14,6 +15,7 @@ from six_hats.graph.resilience import AllHatsFailedError, Limits
 from six_hats.graph.runner import new_run_id, run_workflow
 from six_hats.hats.base import load_prompt
 from six_hats.hats.registry import HATS, PROMPTS_BY_HAT
+from six_hats.interfaces import diagnose as diag
 from six_hats.llm.factory import ConfigError, create_model
 from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import configure_logging
@@ -62,6 +64,36 @@ def hats() -> None:
     for name, role in HATS.items():
         versions = ", ".join(f"{p} v{load_prompt(p).version}" for p in PROMPTS_BY_HAT[name])
         typer.echo(f"{name:7} {role}  [{versions}]")
+
+
+@app.command()
+def diagnose(
+    ping: Annotated[
+        bool, typer.Option("--ping", help="Make one small call to the model to prove it works.")
+    ] = False,
+) -> None:
+    """Show versions and settings (secrets hidden) and optionally test the model connection."""
+    try:
+        settings = load_settings()
+    except ValidationError as exc:
+        # Show where and why, never the offending value (it could be a secret).
+        for err in exc.errors():
+            typer.echo(
+                f"config error: {'.'.join(str(p) for p in err['loc'])}: {err['msg']}", err=True
+            )
+        raise typer.Exit(EXIT_CONFIG) from exc
+    for name, value in diag.collect(settings):
+        typer.echo(f"{name:26} {value}")
+    issues = diag.problems(settings)
+    for issue in issues:
+        typer.echo(f"PROBLEM: {issue}", err=True)
+    if issues:
+        raise typer.Exit(EXIT_CONFIG)
+    if ping:
+        ok, detail = asyncio.run(diag.ping(create_model(settings.llm)))
+        typer.echo(f"{'model ping':26} {detail}")
+        if not ok:
+            raise typer.Exit(EXIT_NO_OUTPUT)
 
 
 @app.command()

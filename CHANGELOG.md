@@ -3,6 +3,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 ### Added
+- `sixhats diagnose`: versions, settings and prompt versions with secrets hidden (keys show only as set or
+  not set); `--ping` makes one small model call and reports the result. Exit 3 for bad config, 5 if the ping fails.
+### Added
 - Phase 4a, resilience: every model node runs with a timeout and bounded retries of transient errors
   (timeouts, dropped connections, 408/429/5xx). A failed hat becomes a failure record and a degraded
   report, not a crash. Blue-Open failure falls back to a default framing (all five hats, parallel);
