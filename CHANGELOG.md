@@ -2,6 +2,12 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Fixed
+- A stray space in the API key (easy to get from a Docker `--env-file`) no longer breaks the request header:
+  keys are trimmed, a blank key counts as not set, and a key with inner whitespace is rejected.
+- Settings errors never echo the offending value, so a bad key can't leak into an error message; `run`
+  reports them as exit 3, the same as `diagnose`.
+- `diagnose --ping` shows the underlying error types for a failed call.
 ### Added
 - Phase 4c: minimal hardened container image (multi-stage, non-root, no secrets baked in), `.dockerignore`,
   a container build and security check in CI, a nightly workflow (full suite, pip-audit, image rebuild,
