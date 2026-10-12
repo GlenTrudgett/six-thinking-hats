@@ -110,3 +110,33 @@ def test_cli_preset_and_sequence(monkeypatch):
 def test_cli_bad_options_exit_2(monkeypatch, args):
     _use(monkeypatch)
     assert runner.invoke(cli.app, ["run", "q", *args]).exit_code == 2
+
+
+async def test_parallel_override_beats_a_preset_chosen_by_blue():
+    f = default_framing().model_copy(update={"preset": "quick_feedback", "mode": "sequential"})
+    model = make_hats_fake(_responder(f))
+    report = await run_workflow(
+        Q, lambda _n: model, run_id="par1", override=SequenceOverride(parallel=True)
+    )
+    assert report.mode == "parallel" and report.preset is None
+    assert {c[1] for c in model.calls if c[0] == "HatOutput"} == HATS
+
+
+def test_override_parallel_conflicts():
+    with pytest.raises(ValueError):
+        SequenceOverride(parallel=True, preset="quick_feedback")
+    with pytest.raises(ValueError):
+        SequenceOverride(parallel=True, sequence=["white"])
+
+
+def test_cli_mode_parallel(monkeypatch):
+    _use(monkeypatch)
+    r = runner.invoke(cli.app, ["run", "q", "--mode", "parallel", "--format", "json"])
+    assert r.exit_code == 0 and '"mode": "parallel"' in r.output.replace('":"', '": "')
+    assert (
+        runner.invoke(
+            cli.app, ["run", "q", "--mode", "parallel", "--preset", "initial_ideas"]
+        ).exit_code
+        == 2
+    )
+    assert runner.invoke(cli.app, ["run", "q", "--mode", "nope"]).exit_code == 2
