@@ -2,6 +2,10 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Changed
+- The cost estimate always carries its currency (`est. cost: USD $0.0123`). New setting
+  `SIXHATS_RUN__PRICE_CURRENCY` is required together with the two prices; a partial set is a configuration
+  error. Reports gain `cost_currency`. `.env.example` lists current model prices (USD) as comments.
 ### Added
 - Makefile for local work without Docker (`make check`, `test-fast`, `demo`, `web`, `dev`, live tests).
 - Offline `demo` provider: runs the whole workflow with no key, network or cost, for trying the app and UI.

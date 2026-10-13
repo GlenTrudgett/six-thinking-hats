@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from six_hats.reporting.money import format_money
 from six_hats.schemas.presets import PRESETS
 from six_hats.schemas.report import FinalReport
 from six_hats.security.sanitise import sanitise_text
@@ -63,8 +64,8 @@ def render_markdown(report: FinalReport) -> str:
         )
     if report.elapsed_seconds is not None:
         footer.append(f"time: {report.elapsed_seconds}s")
-    if report.estimated_cost is not None:
-        footer.append(f"est. cost: {report.estimated_cost:.4f}")
+    if report.estimated_cost is not None and report.cost_currency:
+        footer.append(f"est. cost: {format_money(report.estimated_cost, report.cost_currency)}")
     parts.append("---\n" + " · ".join(footer))
     return "\n\n".join(parts) + "\n"
 

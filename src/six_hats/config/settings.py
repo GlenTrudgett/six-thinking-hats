@@ -73,6 +73,23 @@ class RunSettings(BaseModel):
     # Optional prices per million tokens. Unset: show tokens only (prices change; none built in).
     price_input_per_mtok: float | None = Field(default=None, ge=0)
     price_output_per_mtok: float | None = Field(default=None, ge=0)
+    # ISO 4217 code of the currency the two prices above are written in, e.g. USD or AUD.
+    price_currency: str | None = Field(default=None, pattern=r"^[A-Za-z]{3}$")
+
+    @field_validator("price_currency")
+    @classmethod
+    def _upper(cls, value: str | None) -> str | None:
+        return value.upper() if value else value
+
+    @model_validator(mode="after")
+    def _prices_complete(self) -> RunSettings:
+        given = [self.price_input_per_mtok, self.price_output_per_mtok, self.price_currency]
+        if any(v is not None for v in given) and any(v is None for v in given):
+            raise ValueError(
+                "set all three of PRICE_INPUT_PER_MTOK, PRICE_OUTPUT_PER_MTOK and PRICE_CURRENCY "
+                "(for example USD or AUD), or none of them"
+            )
+        return self
 
 
 class Settings(BaseSettings):

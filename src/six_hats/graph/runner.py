@@ -63,6 +63,7 @@ async def run_workflow(
     on_progress: ProgressCallback | None = None,
     price_input_per_mtok: float | None = None,
     price_output_per_mtok: float | None = None,
+    price_currency: str | None = None,
 ) -> FinalReport:
     rid = run_id or new_run_id()
     graph = build_graph(resolve, max_question_chars=max_question_chars, limits=limits)
@@ -93,13 +94,18 @@ async def run_workflow(
         for key in totals:
             totals[key] += int(data.get(key, 0))
     elapsed = round(time.monotonic() - started, 2)
-    cost = estimate_cost(totals, price_input_per_mtok, price_output_per_mtok)
+    cost = (
+        estimate_cost(totals, price_input_per_mtok, price_output_per_mtok)
+        if price_currency
+        else None  # a cost without a currency would be ambiguous, so none is shown
+    )
     report = report.model_copy(
         update={
             "models_used": sorted(models),
             "token_usage": totals,
             "elapsed_seconds": elapsed,
             "estimated_cost": None if cost is None else round(cost, 6),
+            "cost_currency": price_currency if cost is not None else None,
         }
     )
     _log.info(
