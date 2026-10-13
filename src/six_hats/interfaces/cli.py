@@ -80,7 +80,7 @@ def hats() -> None:
 
 @app.command()
 def presets() -> None:
-    """List the preset hat sequences (their sources are not yet checked against the book)."""
+    """List the preset hat sequences (marked advanced: a secondary source, not the book)."""
     for p in PRESETS.values():
         typer.echo(f"{p.id}  [{p.source}]")
         typer.echo(f"  {p.title}: {' → '.join(p.sequence)}")

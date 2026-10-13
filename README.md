@@ -67,7 +67,7 @@ one at a time, each seeing what came before. `--preset` and `--sequence` cannot 
 `--sequence` accepts only `white`, `red`, `green`, `yellow`, `black`. In an evaluation, yellow is placed
 before black. The report names the preset used.
 
-The preset orders are **not yet checked against de Bono's book** and are marked "unverified" in the
+The preset orders come from a secondary source, **not the book text**, and are marked "advanced" in the
 code and in reports.
 
 ## Troubleshooting

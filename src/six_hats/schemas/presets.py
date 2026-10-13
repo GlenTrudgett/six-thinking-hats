@@ -3,7 +3,7 @@
 Blue opens and closes every session, so a preset lists only the five coloured hats. Code, not the
 model, turns a preset id into an order. `source` records where an order came from:
 - "book": checked against de Bono's *Six Thinking Hats*.
-- "unverified": taken from a secondary summary; not yet checked against the book.
+- "advanced": a more advanced sequence taken from a secondary summary, not the book text.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ PresetId = Literal[
     "performance_review",
 ]
 MAX_SEQUENCE_STEPS = 8
-Source = Literal["book", "unverified"]
+Source = Literal["book", "advanced"]
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,7 @@ class Preset:
     title: str
     use_when: str
     sequence: tuple[ThinkingHatName, ...]
-    source: Source = "unverified"
+    source: Source = "advanced"
 
 
 PRESETS: dict[str, Preset] = {

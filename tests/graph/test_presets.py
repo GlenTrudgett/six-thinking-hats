@@ -20,7 +20,7 @@ def test_preset_ids_match_literal():
 @pytest.mark.parametrize("p", PRESETS.values(), ids=lambda p: p.id)
 def test_every_preset_is_valid(p):
     assert 1 <= len(p.sequence) <= MAX_SEQUENCE_STEPS
-    assert set(p.sequence) <= HATS and p.source == "unverified"
+    assert set(p.sequence) <= HATS and p.source == "advanced"
 
 
 def test_override_needs_exactly_one():
@@ -55,7 +55,7 @@ async def test_report_carries_preset_and_renders():
     model = make_hats_fake()
     ov = SequenceOverride(preset="initial_ideas")
     report = await run_workflow(Q, lambda _n: model, run_id="p1", override=ov)
-    assert report.preset == "initial_ideas" and report.preset_source == "unverified"
+    assert report.preset == "initial_ideas" and report.preset_source == "advanced"
     assert report.sequence == ["white", "green"]
     assert [c[1] for c in model.calls if c[0] == "HatOutput"] == ["white", "green"]
     from six_hats.reporting.render import render_markdown
@@ -87,7 +87,7 @@ def _use(monkeypatch):
 
 def test_presets_command_lists_all():
     out = runner.invoke(cli.app, ["presets"]).output
-    assert all(pid in out for pid in PRESETS) and "unverified" in out
+    assert all(pid in out for pid in PRESETS) and "advanced" in out
 
 
 def test_cli_preset_and_sequence(monkeypatch):
