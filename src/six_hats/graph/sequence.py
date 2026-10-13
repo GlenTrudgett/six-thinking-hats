@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from six_hats.schemas.framing import Framing
-from six_hats.schemas.hat_output import ThinkingHatName
+from six_hats.schemas.hat_output import THINKING_HATS, ThinkingHatName
 from six_hats.schemas.presets import CUSTOM, PRESETS, SequenceOverride
 
 
@@ -40,6 +40,13 @@ def resolve_order(framing: Framing, override: SequenceOverride | None) -> tuple[
     so the model cannot alter a preset's order. Anything else is Blue-Open's own sequence
     plus the rules.
     """
+    if override is not None and override.parallel:
+        update_p: dict[str, Any] = {
+            "preset": None,
+            "sequence": list(THINKING_HATS),
+            "mode": "parallel",
+        }
+        return framing.model_copy(update=update_p), "override"
     if override is not None:
         name: str
         if override.preset is not None:

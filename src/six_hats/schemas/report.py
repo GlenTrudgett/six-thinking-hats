@@ -45,7 +45,7 @@ class FinalReport(BaseModel):
     mode: Literal["parallel", "sequential"] = "parallel"
     sequence: list[ThinkingHatName] = Field(default_factory=list)
     preset: str | None = None
-    preset_source: Literal["book", "unverified"] | None = None
+    preset_source: Literal["book", "advanced"] | None = None
     degraded: bool = False
     failures: list[FailureRecord] = Field(default_factory=list)
     models_used: list[str] = Field(default_factory=list)

@@ -30,8 +30,8 @@ def render_markdown(report: FinalReport) -> str:
             preset = PRESETS.get(report.preset)
             name = preset.title if preset else "Custom order"
             note = (
-                " (source not yet checked against the book)"
-                if report.preset_source == "unverified"
+                " (advanced preset; secondary source, not the book)"
+                if report.preset_source == "advanced"
                 else ""
             )
             line = f"Preset: {name}{note}  \n{line}"

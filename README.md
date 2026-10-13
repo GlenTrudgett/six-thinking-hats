@@ -40,6 +40,7 @@ sixhats run --file question.txt --format json -o report.json
 | `--preset ID` | Use a preset hat sequence (see below) |
 | `--sequence a,b,c` | Use your own order of hats |
 | `--quiet`, `-q` | Do not print progress lines to standard error |
+| `--mode parallel` | Force all five hats to run at once, ignoring presets (default `auto`: Blue-Open decides) |
 
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
@@ -68,7 +69,7 @@ one at a time, each seeing what came before. `--preset` and `--sequence` cannot 
 `--sequence` accepts only `white`, `red`, `green`, `yellow`, `black`. In an evaluation, yellow is placed
 before black. The report names the preset used.
 
-The preset orders are **not yet checked against de Bono's book** and are marked "unverified" in the
+The preset orders come from a secondary source, **not the book text**, and are marked "advanced" in the
 code and in reports.
 
 ### Progress and cost

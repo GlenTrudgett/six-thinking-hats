@@ -3,7 +3,7 @@
 Blue opens and closes every session, so a preset lists only the five coloured hats. Code, not the
 model, turns a preset id into an order. `source` records where an order came from:
 - "book": checked against de Bono's *Six Thinking Hats*.
-- "unverified": taken from a secondary summary; not yet checked against the book.
+- "advanced": a more advanced sequence taken from a secondary summary, not the book text.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ PresetId = Literal[
     "performance_review",
 ]
 MAX_SEQUENCE_STEPS = 8
-Source = Literal["book", "unverified"]
+Source = Literal["book", "advanced"]
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,7 @@ class Preset:
     title: str
     use_when: str
     sequence: tuple[ThinkingHatName, ...]
-    source: Source = "unverified"
+    source: Source = "advanced"
 
 
 PRESETS: dict[str, Preset] = {
@@ -101,15 +101,18 @@ def describe_presets() -> str:
 
 
 class SequenceOverride(BaseModel):
-    """A caller's choice of order that replaces Blue-Open's. Exactly one of the two fields."""
+    """A caller's choice that replaces Blue-Open's. Exactly one of: preset, sequence, parallel."""
 
     preset: PresetId | None = None
     sequence: list[ThinkingHatName] | None = Field(
         default=None, min_length=1, max_length=MAX_SEQUENCE_STEPS
     )
 
+    parallel: bool = False
+
     @model_validator(mode="after")
     def _exactly_one(self) -> SequenceOverride:
-        if (self.preset is None) == (self.sequence is None):
-            raise ValueError("give either a preset or a sequence, not both or neither")
+        chosen = [self.preset is not None, self.sequence is not None, self.parallel]
+        if sum(chosen) != 1:
+            raise ValueError("give exactly one of preset, sequence or parallel")
         return self
