@@ -138,6 +138,33 @@ def _build_override(
 
 
 @app.command()
+def serve(
+    host: Annotated[
+        str, typer.Option(help="Interface to listen on (loopback by default).")
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+) -> None:
+    """Start the local web API for the frontend (needs the `web` extra)."""
+    try:
+        import uvicorn
+
+        from six_hats.interfaces.api import create_app
+    except ImportError as exc:
+        raise _fail(
+            "the web API needs: pip install 'six-hats[web]' (or uv sync --extra web)", EXIT_CONFIG
+        ) from exc
+    settings = _load_settings_or_exit()
+    configure_logging(settings.log_level, settings.log_json)
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        typer.echo(
+            "warning: the API has no login. Anyone who can reach this port can spend your "
+            "model tokens. Keep it on 127.0.0.1 unless the network is trusted.",
+            err=True,
+        )
+    uvicorn.run(create_app(settings), host=host, port=port, log_level="warning")
+
+
+@app.command()
 def diagnose(
     ping: Annotated[
         bool, typer.Option("--ping", help="Make one small call to the model to prove it works.")
