@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import time
 import uuid
+from collections.abc import Callable
 from typing import Any
 
 from langchain_core.callbacks import UsageMetadataCallbackHandler
@@ -22,6 +24,29 @@ def new_run_id() -> str:
     return uuid.uuid4().hex[:12]
 
 
+ProgressCallback = Callable[[str, str], None]  # (node, message)
+
+
+def estimate_cost(
+    totals: dict[str, int], price_in: float | None, price_out: float | None
+) -> float | None:
+    """Cost from token totals and per-million-token prices; None unless both prices are set."""
+    if price_in is None or price_out is None:
+        return None
+    return (totals["input_tokens"] * price_in + totals["output_tokens"] * price_out) / 1_000_000
+
+
+def _describe(node: str, delta: Any) -> str:
+    if node == "blue_open" and isinstance(delta, dict) and delta.get("framing") is not None:
+        f = delta["framing"]
+        return f"framed ({f.mode}: {', '.join(f.sequence)})"
+    if isinstance(delta, dict) and isinstance(delta.get("outputs"), dict):
+        return "done: " + ", ".join(sorted(delta["outputs"]))
+    if isinstance(delta, dict) and delta.get("failures"):
+        return "failed (see report)"
+    return "done"
+
+
 class RunError(RuntimeError):
     """The graph finished without producing a report."""
 
@@ -35,12 +60,16 @@ async def run_workflow(
     recursion_limit: int = 25,
     limits: Limits = DEFAULT_LIMITS,
     override: SequenceOverride | None = None,
+    on_progress: ProgressCallback | None = None,
+    price_input_per_mtok: float | None = None,
+    price_output_per_mtok: float | None = None,
 ) -> FinalReport:
     rid = run_id or new_run_id()
     graph = build_graph(resolve, max_question_chars=max_question_chars, limits=limits)
     usage = UsageMetadataCallbackHandler()
     config: RunnableConfig = {"callbacks": [usage], "recursion_limit": recursion_limit}
     _log.info("run.started", run_id=rid)
+    started = time.monotonic()
 
     report: FinalReport | None = None
     async for update in graph.astream(
@@ -49,6 +78,8 @@ async def run_workflow(
         for node, delta in update.items():
             keys = sorted(delta) if isinstance(delta, dict) else []
             _log.debug("graph.update", run_id=rid, node=node, keys=keys)
+            if on_progress is not None:
+                on_progress(node, _describe(node, delta))
             if node == "blue_close" and isinstance(delta, dict):
                 report = delta["report"]
     if report is None:
@@ -61,7 +92,16 @@ async def run_workflow(
         data: dict[str, Any] = dict(meta)
         for key in totals:
             totals[key] += int(data.get(key, 0))
-    report = report.model_copy(update={"models_used": sorted(models), "token_usage": totals})
+    elapsed = round(time.monotonic() - started, 2)
+    cost = estimate_cost(totals, price_input_per_mtok, price_output_per_mtok)
+    report = report.model_copy(
+        update={
+            "models_used": sorted(models),
+            "token_usage": totals,
+            "elapsed_seconds": elapsed,
+            "estimated_cost": None if cost is None else round(cost, 6),
+        }
+    )
     _log.info(
         "run.completed",
         run_id=rid,

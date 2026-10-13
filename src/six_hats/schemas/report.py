@@ -50,5 +50,7 @@ class FinalReport(BaseModel):
     failures: list[FailureRecord] = Field(default_factory=list)
     models_used: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
+    elapsed_seconds: float | None = None
+    estimated_cost: float | None = None  # in the currency of the prices you configured
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
