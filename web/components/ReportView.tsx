@@ -1,5 +1,6 @@
+import { HatChip } from "@/components/HatIcon";
 import { formatMoney } from "@/lib/money";
-import type { Report } from "@/lib/types";
+import type { Hat, Report } from "@/lib/types";
 
 function List({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
@@ -32,15 +33,13 @@ export function ReportView({ report }: { report: Report }) {
         </div>
       )}
       <div className="chips" aria-label="Hat order">
-        <span className="chip blue">Blue</span>
+        <HatChip hat="blue" label="Blue" />
         {(report.mode === "sequential" ? report.sequence : ["white", "red", "green", "yellow", "black"]).map(
           (h, n) => (
-            <span key={n} className={`chip ${h}`}>
-              {h}
-            </span>
+            <HatChip key={n} hat={h as Hat} />
           ),
         )}
-        <span className="chip blue">Blue</span>
+        <HatChip hat="blue" label="Blue" />
         <span className="hint">{report.mode}{report.preset ? ` · ${report.preset}` : ""}</span>
       </div>
       <h2>Framing</h2>
