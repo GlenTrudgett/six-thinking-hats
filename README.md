@@ -39,6 +39,7 @@ sixhats run --file question.txt --format json -o report.json
 | `--output`, `-o PATH` | Write the report to a file; add `--force` to overwrite |
 | `--preset ID` | Use a preset hat sequence (see below) |
 | `--sequence a,b,c` | Use your own order of hats |
+| `--quiet`, `-q` | Do not print progress lines to standard error |
 
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.
@@ -69,6 +70,25 @@ before black. The report names the preset used.
 
 The preset orders are **not yet checked against de Bono's book** and are marked "unverified" in the
 code and in reports.
+
+### Progress and cost
+While a run is going, each step prints to standard error (the report still goes to standard output, so
+`> report.md` stays clean):
+```
+[   2.1s] intake: done
+[   6.8s] blue_open: framed (sequential: white, green)
+[  14.0s] sequential: done: white, green
+[  19.5s] blue_close: done
+usage: 5120 in / 1480 out tokens, 19.5s
+```
+Use `--quiet` to hide the progress lines. Tokens and time are always shown, and are in the report footer and
+JSON (`token_usage`, `elapsed_seconds`). For a money estimate, set your own prices per million tokens in
+`.env` (none are built in, because prices change):
+```
+SIXHATS_RUN__PRICE_INPUT_PER_MTOK=3.0
+SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK=15.0
+```
+The estimate (`estimated_cost`) is in whatever currency you used and is shown only when both are set.
 
 ## Troubleshooting
 ```
