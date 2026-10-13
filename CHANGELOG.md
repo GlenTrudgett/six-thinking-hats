@@ -2,27 +2,35 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-10-13
+Presets, forced parallel mode, progress and cost reporting, and a web interface.
+
 ### Added
-- Web UI: a "Start over" button after a run finishes (or fails) that clears the question, the hat choices,
-  the progress and the report, and returns the page to its first-load settings.
-### Changed
-- Web UI restyled to echo the book cover: sage background with brushed streaks, ink-navy text, the six hat
-  colours (measured from a photo of the cover, see `web/PALETTE.md`) and small hat icons on the chips. The UI
-  is now a single light theme. No cover artwork or logo is used.
+- Preset hat sequences: seven named orders (initial ideas, choosing between alternatives, identifying
+  solutions, quick feedback, process improvement, problem solving, performance review). Blue-Open can choose
+  one (its order then comes from code, not the model) or you can: `sixhats presets`, `run --preset ID`,
+  `run --sequence white,green,black` (1 to 8 steps, hats may repeat). The report names the preset. The
+  orders come from a secondary source, not the book text, and are labelled "advanced". Blue-Open prompt is v3.
+- `run --mode parallel` forces all five hats at once, ignoring presets (cannot be combined with
+  `--preset` or `--sequence`).
+- Progress and cost: progress lines on stderr (`--quiet` hides them), elapsed time and token counts, and an
+  optional cost estimate from your own prices. The estimate always carries its currency
+  (`est. cost: USD $0.0123`); `SIXHATS_RUN__PRICE_CURRENCY` is required with the two price settings and a
+  partial set is a configuration error. Reports gain `elapsed_seconds`, `estimated_cost`, `cost_currency`.
+  `.env.example` lists current model prices (USD) as comments.
+- Web interface: `sixhats serve` (FastAPI, optional `web` extra, loopback by default, streams progress as
+  server-sent events) and a Next.js/React front end in `web/` with presets, a custom hat order, live progress,
+  Copy and Download as Markdown, and a "Start over" button. Styled with the palette of the book cover
+  (`web/PALETTE.md`); no cover artwork or logo is used.
+- Makefile for local work without Docker (`make check`, `test-fast`, `demo`, `web`, `dev`, live tests).
+- Offline `demo` provider: runs the whole workflow with no key, network or cost, for trying the app and UI.
+- Plans (docs only): Blue steps in the middle of a sequence, and quality checks.
+
 ### Fixed
 - Web UI: a run longer than 30 seconds failed with "Error in input stream" because Next.js's rewrite proxy
   cut the stream. The proxy timeout is now 15 minutes, the API sends a keep-alive comment every 10 seconds
   during quiet steps, and a lost connection now gives a clear message.
-### Changed
-- The cost estimate always carries its currency (`est. cost: USD $0.0123`). New setting
-  `SIXHATS_RUN__PRICE_CURRENCY` is required together with the two prices; a partial set is a configuration
-  error. Reports gain `cost_currency`. `.env.example` lists current model prices (USD) as comments.
-### Added
-- Makefile for local work without Docker (`make check`, `test-fast`, `demo`, `web`, `dev`, live tests).
-- Offline `demo` provider: runs the whole workflow with no key, network or cost, for trying the app and UI.
-### Added
-- Web interface: `sixhats serve` (FastAPI, optional `web` extra, loopback by default, streams progress as
-  server-sent events) and a Next.js/React front end in `web/`.
 
 ## [1.0.0] - 2026-10-12
 First stable release. Verified live on Claude (claude-sonnet-5-5) and a local llama.cpp server, and in the

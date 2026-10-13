@@ -21,7 +21,7 @@ def _use(monkeypatch, model):
 
 
 def test_version_and_hats():
-    assert "1.0.0" in runner.invoke(cli.app, ["version"]).output
+    assert "1.1.0" in runner.invoke(cli.app, ["version"]).output
     out = runner.invoke(cli.app, ["hats"]).output
     for hat in ("white", "red", "green", "yellow", "black", "blue"):
         assert hat in out
