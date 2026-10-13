@@ -166,5 +166,38 @@ uv run pytest tests/live -m live --no-cov -s
 SIXHATS_LIVE=1 SIXHATS_LLM__PROVIDER=anthropic SIXHATS_LLM__ANTHROPIC_API_KEY=<key> \
 uv run pytest tests/live -m live --no-cov -s
 ```
+### Quality checks
+Three layers, cheapest first. See `docs/plans/quality-checks.md` for the reasoning.
+
+1. **Offline, every PR (`make test`)**: every prompt must meet a contract (names its hat, has a version,
+   states a limit, treats input as data); property-based tests (Hypothesis) check the report's rules over
+   many fake-model runs; JSON-schema snapshots in `tests/golden/schemas.json` make report changes
+   deliberate. After an intended schema change run
+   `UPDATE_GOLDEN=1 uv run pytest tests/unit/test_golden_schema.py --no-cov` and commit the result.
+2. **Behavioural, on a real model (opt-in)**: ten fixed questions in `tests/quality/questions.yaml`
+   (decision, idea, problem, review, vague, very short, long, non-English, injection attempt, emotional).
+   Programmatic checks only: a valid, non-degraded report with the forced mode and preset; each hat stays
+   in role (black names a risk, yellow a benefit, red has no statistics, white no "I feel", green three
+   distinct ideas; English keyword heuristics); no run of 8 words from any system prompt appears in the
+   output (so an injection cannot extract a prompt); time, token and cost limits.
+3. **Judged (opt-in)**: a second model scores each hat 1-5 on staying in role, being specific to the
+   question and adding new content. Scores are stored with the model and prompt versions and are
+   **evidence, not a pass/fail gate**, because judge models drift.
+
+```
+make quality LIMIT=3 BUDGET=1.50        # Claude, first 3 questions, stop at 1.50 spent
+make quality-judge                      # plus judge scores
+make quality-local MODEL=<name>         # llama.cpp, no cost
+make quality-compare FILES="quality-results/a.json quality-results/b.json"
+```
+`BUDGET` needs the three price settings (see `.env.example`) and uses their currency. Results are written
+to `quality-results/<time>-<provider>-<model>.json` (not committed): every hat's points, findings, tokens,
+time, cost and prompt versions. Set `SIXHATS_QUALITY_JUDGE_MODEL` to judge with a different model than the
+one under test. The nightly workflow runs the same job when the repository variable
+`SIXHATS_NIGHTLY_QUALITY` is `true` (it uses `ANTHROPIC_API_KEY`, and the optional variables
+`SIXHATS_QUALITY_LIMIT`, `SIXHATS_QUALITY_BUDGET`, `SIXHATS_QUALITY_JUDGE` and
+`SIXHATS_PRICE_INPUT_PER_MTOK` / `SIXHATS_PRICE_OUTPUT_PER_MTOK` / `SIXHATS_PRICE_CURRENCY`) and
+uploads the results file. llama.cpp is not part of the nightly: the CI runner cannot reach your machine.
+
 Structured output tries the provider's native schema support first, then falls back to a JSON-mode
 prompt with parsing and validation, so models without schema or tool support still work.

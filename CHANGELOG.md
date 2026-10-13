@@ -3,6 +3,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Added
+- Quality checks, layers 2 and 3 (opt-in, real model; `tests/quality/`): ten fixed questions
+  (`questions.yaml`), programmatic checks only (valid non-degraded report with the forced mode and preset;
+  each hat stays in role by keyword and shape; no 8-word run from any system prompt in the output, so a
+  prompt-extraction attempt is caught without changing any prompt; time, token and cost limits; a planted
+  canary reported as a warning), a spending cap (`SIXHATS_QUALITY_BUDGET`, in the price currency), and one
+  results JSON per run in `quality-results/` (not committed). An optional judge model scores each hat 1-5
+  (stays in role, specific, adds new content) and stores the scores with model and prompt versions; they are
+  never a pass/fail gate. `tests/quality/compare.py` sets result files side by side. The tooling itself is
+  tested offline on every PR. New: `make quality`, `quality-judge`, `quality-local`, `quality-compare`; a
+  nightly `quality` job (off unless the repository variable `SIXHATS_NIGHTLY_QUALITY` is `true`).
+
 ## [1.1.0] - 2026-10-13
 Presets, forced parallel mode, progress and cost reporting, and a web interface.
 
