@@ -2,6 +2,10 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Changed
+- Web UI restyled to echo the book cover: sage background with brushed streaks, ink-navy text, the six hat
+  colours (measured from a photo of the cover, see `web/PALETTE.md`) and small hat icons on the chips. The UI
+  is now a single light theme. No cover artwork or logo is used.
 ### Fixed
 - Web UI: a run longer than 30 seconds failed with "Error in input stream" because Next.js's rewrite proxy
   cut the stream. The proxy timeout is now 15 minutes, the API sends a keep-alive comment every 10 seconds

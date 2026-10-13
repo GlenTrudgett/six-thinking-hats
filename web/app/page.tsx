@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { HatChip, HatIcon } from "@/components/HatIcon";
 import { ReportView } from "@/components/ReportView";
 import { reportToMarkdown } from "@/lib/markdown";
 import { streamRun } from "@/lib/stream";
@@ -74,9 +75,16 @@ export default function Home() {
   }
 
   return (
+    <>
     <main>
-      <h1>Six Thinking Hats</h1>
-      <p className="sub">Put a question or idea in. Blue frames it, the coloured hats think, Blue sums up.</p>
+      <header>
+        <p className="eyebrow">After Edward de Bono</p>
+        <h1>Six Thinking Hats</h1>
+        <div className="hatrow" aria-hidden="true">
+          {(["blue", "white", "green", "red", "black", "yellow"] as const).map((h) => <HatIcon key={h} hat={h} size={34} />)}
+        </div>
+        <p className="sub">Put a question or idea in. Blue frames it, the coloured hats think, Blue sums up.</p>
+      </header>
 
       <section className="card">
         <label htmlFor="q">Your question</label>
@@ -101,7 +109,7 @@ export default function Home() {
               <p className="hint">
                 {preset.use_when}
                 <span className="chips">
-                  {preset.sequence.map((h, n) => <span key={n} className={`chip ${h}`}>{h}</span>)}
+                  {preset.sequence.map((h, n) => <HatChip key={n} hat={h} />)}
                 </span>
                 Source: {preset.source} (a secondary source, not the book text).
               </p>
@@ -114,13 +122,13 @@ export default function Home() {
             <div className="row" role="group" aria-label="Add a hat">
               {hats.map((h) => (
                 <button key={h} className={`chip hatbtn ${h}`} disabled={custom.length >= 8}
-                  onClick={() => setCustom((c) => [...c, h])}>+ {h}</button>
+                  onClick={() => setCustom((c) => [...c, h])}><HatIcon hat={h} size={22} /> + {h}</button>
               ))}
               <button onClick={() => setCustom((c) => c.slice(0, -1))} disabled={!custom.length}>Undo</button>
               <button onClick={() => setCustom([])} disabled={!custom.length}>Clear</button>
             </div>
             <div className="chips" aria-live="polite">
-              {custom.length ? custom.map((h, n) => <span key={n} className={`chip ${h}`}>{h}</span>)
+              {custom.length ? custom.map((h, n) => <HatChip key={n} hat={h} />)
                 : <span className="hint">Pick 1 to 8 steps. A hat may repeat.</span>}
             </div>
           </>
@@ -153,5 +161,7 @@ export default function Home() {
         </>
       )}
     </main>
+    <footer><div className="rule">Blue opens · five hats think · Blue closes</div></footer>
+    </>
   );
 }
