@@ -101,15 +101,18 @@ def describe_presets() -> str:
 
 
 class SequenceOverride(BaseModel):
-    """A caller's choice of order that replaces Blue-Open's. Exactly one of the two fields."""
+    """A caller's choice that replaces Blue-Open's. Exactly one of: preset, sequence, parallel."""
 
     preset: PresetId | None = None
     sequence: list[ThinkingHatName] | None = Field(
         default=None, min_length=1, max_length=MAX_SEQUENCE_STEPS
     )
 
+    parallel: bool = False
+
     @model_validator(mode="after")
     def _exactly_one(self) -> SequenceOverride:
-        if (self.preset is None) == (self.sequence is None):
-            raise ValueError("give either a preset or a sequence, not both or neither")
+        chosen = [self.preset is not None, self.sequence is not None, self.parallel]
+        if sum(chosen) != 1:
+            raise ValueError("give exactly one of preset, sequence or parallel")
         return self

@@ -39,6 +39,7 @@ sixhats run --file question.txt --format json -o report.json
 | `--output`, `-o PATH` | Write the report to a file; add `--force` to overwrite |
 | `--preset ID` | Use a preset hat sequence (see below) |
 | `--sequence a,b,c` | Use your own order of hats |
+| `--mode parallel` | Force all five hats to run at once, ignoring presets (default `auto`: Blue-Open decides) |
 
 Exit codes: 0 ok, 1 internal error, 2 input error, 3 configuration error, 4 degraded run, 5 no model output (nothing to report on).
 Copy `.env.example` to `.env` for configuration. Never commit secrets.

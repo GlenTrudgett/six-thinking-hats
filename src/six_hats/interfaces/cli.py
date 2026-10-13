@@ -90,9 +90,18 @@ def presets() -> None:
 _HAT_NAMES = {"white", "red", "green", "yellow", "black"}
 
 
-def _build_override(preset: str | None, sequence: str | None) -> SequenceOverride | None:
-    if preset is not None and sequence is not None:
-        raise InputError("give either --preset or --sequence, not both")
+class RunMode(StrEnum):
+    auto = "auto"
+    parallel = "parallel"
+
+
+def _build_override(
+    preset: str | None, sequence: str | None, mode: RunMode = RunMode.auto
+) -> SequenceOverride | None:
+    if sum(x is not None for x in (preset, sequence)) + (mode is RunMode.parallel) > 1:
+        raise InputError("give only one of --preset, --sequence or --mode parallel")
+    if mode is RunMode.parallel:
+        return SequenceOverride(parallel=True)
     if preset is not None:
         if preset not in PRESETS:
             raise InputError(f"unknown preset '{preset}'; run 'sixhats presets' to list them")
@@ -150,6 +159,12 @@ def run(
     sequence: Annotated[
         str | None, typer.Option("--sequence", help="Own order, e.g. white,green,black.")
     ] = None,
+    mode: Annotated[
+        RunMode,
+        typer.Option(
+            "--mode", help="'parallel' forces all five hats at once; 'auto' lets Blue decide."
+        ),
+    ] = RunMode.auto,
 ) -> None:
     """Run the six-hats workflow on a question and print the report."""
     run_id = new_run_id()
@@ -157,7 +172,7 @@ def run(
     configure_logging(settings.log_level, settings.log_json)
     typer.echo(f"run: {run_id}", err=True)
     try:
-        override = _build_override(preset, sequence)
+        override = _build_override(preset, sequence, mode)
         text = _read_question(question, file)
         if output is not None and output.exists() and not force:
             raise InputError(f"{output} exists; use --force to overwrite")
