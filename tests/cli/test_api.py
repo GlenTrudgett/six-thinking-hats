@@ -96,3 +96,8 @@ def test_quiet_periods_send_keepalive_comments(monkeypatch):
     text = c.post("/api/run", json={"question": "q", "mode": "parallel"}).text
     assert ": keepalive" in text
     assert _events(text.replace(": keepalive\n\n", ""))[-1][0] == "report"
+
+
+def test_misplaced_blue_in_a_sequence_is_422(client):
+    body = {"question": "q", "sequence": ["white", "blue", "blue", "black"]}
+    assert client.post("/api/run", json=body).status_code == 422

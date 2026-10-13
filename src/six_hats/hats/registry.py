@@ -9,7 +9,7 @@ HATS: dict[HatName, str] = {
     "black": "Cautious: risks and weaknesses.",
     "yellow": "Optimistic: benefits and hope.",
     "green": "Creative: new ideas and alternatives.",
-    "blue": "Process control: frames the session and writes the final report.",
+    "blue": "Process control: frames the session, may pause between hats, writes the final report.",
 }
 
 PROMPTS_BY_HAT: dict[HatName, tuple[PromptName, ...]] = {
@@ -18,5 +18,5 @@ PROMPTS_BY_HAT: dict[HatName, tuple[PromptName, ...]] = {
     "black": ("black",),
     "yellow": ("yellow",),
     "green": ("green",),
-    "blue": ("blue_open", "blue_close"),
+    "blue": ("blue_open", "blue_checkpoint", "blue_close"),
 }

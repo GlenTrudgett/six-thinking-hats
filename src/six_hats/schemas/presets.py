@@ -13,7 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from six_hats.schemas.hat_output import ThinkingHatName
+from six_hats.schemas.hat_output import SequenceStep, ThinkingHatName, blue_step_problem
 
 PresetId = Literal[
     "initial_ideas",
@@ -104,7 +104,7 @@ class SequenceOverride(BaseModel):
     """A caller's choice that replaces Blue-Open's. Exactly one of: preset, sequence, parallel."""
 
     preset: PresetId | None = None
-    sequence: list[ThinkingHatName] | None = Field(
+    sequence: list[SequenceStep] | None = Field(
         default=None, min_length=1, max_length=MAX_SEQUENCE_STEPS
     )
 
@@ -115,4 +115,6 @@ class SequenceOverride(BaseModel):
         chosen = [self.preset is not None, self.sequence is not None, self.parallel]
         if sum(chosen) != 1:
             raise ValueError("give exactly one of preset, sequence or parallel")
+        if self.sequence is not None and (problem := blue_step_problem(self.sequence)):
+            raise ValueError(problem)
         return self

@@ -41,7 +41,10 @@ def _describe(node: str, delta: Any) -> str:
         f = delta["framing"]
         return f"framed ({f.mode}: {', '.join(f.sequence)})"
     if isinstance(delta, dict) and isinstance(delta.get("outputs"), dict):
-        return "done: " + ", ".join(sorted(delta["outputs"]))
+        note = (
+            f" (+{len(delta['checkpoints'])} Blue checkpoint)" if delta.get("checkpoints") else ""
+        )
+        return "done: " + ", ".join(sorted(delta["outputs"])) + note
     if isinstance(delta, dict) and delta.get("failures"):
         return "failed (see report)"
     return "done"

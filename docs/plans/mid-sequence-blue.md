@@ -1,7 +1,9 @@
 # Plan: Blue Hat steps in the middle of a sequence
 
-Status: plan only, nothing implemented. Needed for the "strategic planning" preset, which de Bono-style
-summaries show with Blue between phases (the order is from a secondary source; check it against the book first).
+Status: implemented in steps 1 to 5 and 7 of the work breakdown (see CHANGELOG, Unreleased). Step 6, the
+"strategic planning" preset, is deliberately not done: its order comes from a secondary source and has not
+been checked against the book. Blue-Open is not asked to place checkpoints, so they are caller-chosen.
+The v2 idea (a checkpoint that edits the sequence) remains undecided.
 
 ## Today
 Blue opens (framing) and closes (report) every run. `sequence` holds only the five coloured hats.

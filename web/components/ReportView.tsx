@@ -1,6 +1,6 @@
 import { HatChip } from "@/components/HatIcon";
 import { formatMoney } from "@/lib/money";
-import type { Hat, Report } from "@/lib/types";
+import type { Report, Step } from "@/lib/types";
 
 function List({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
@@ -36,7 +36,7 @@ export function ReportView({ report }: { report: Report }) {
         <HatChip hat="blue" label="Blue" />
         {(report.mode === "sequential" ? report.sequence : ["white", "red", "green", "yellow", "black"]).map(
           (h, n) => (
-            <HatChip key={n} hat={h as Hat} />
+            <HatChip key={n} hat={h as Step} />
           ),
         )}
         <HatChip hat="blue" label="Blue" />
@@ -51,6 +51,24 @@ export function ReportView({ report }: { report: Report }) {
         </div>
       ))}
       <List title="Conclusions" items={report.conclusions} />
+      {report.checkpoints?.length > 0 && (
+        <>
+          <h2>Blue checkpoints</h2>
+          {report.checkpoints.map((c, n) => (
+            <div key={n} className="hatcard blue">
+              <strong>After {c.after}</strong>
+              <ul>{c.checkpoint.progress.map((p, i) => <li key={i}>{p}</li>)}</ul>
+              {c.checkpoint.gaps.length > 0 && (
+                <>
+                  <em>Gaps</em>
+                  <ul>{c.checkpoint.gaps.map((p, i) => <li key={i}>{p}</li>)}</ul>
+                </>
+              )}
+              <div>Next focus: {c.checkpoint.next_focus}</div>
+            </div>
+          ))}
+        </>
+      )}
       <List title="Agreements" items={report.agreements} />
       <List title="Tensions" items={report.tensions} />
       <List title="Recommended next steps" items={report.recommended_next_steps} />
