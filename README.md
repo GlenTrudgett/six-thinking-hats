@@ -98,12 +98,16 @@ usage: 5120 in / 1480 out tokens, 19.5s
 ```
 Use `--quiet` to hide the progress lines. Tokens and time are always shown, and are in the report footer and
 JSON (`token_usage`, `elapsed_seconds`). For a money estimate, set your own prices per million tokens in
-`.env` (none are built in, because prices change):
+`.env` (none are built in, because prices change), together with the **currency** they are written in:
 ```
-SIXHATS_RUN__PRICE_INPUT_PER_MTOK=3.0
-SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK=15.0
+SIXHATS_RUN__PRICE_INPUT_PER_MTOK=2.0
+SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK=10.0
+SIXHATS_RUN__PRICE_CURRENCY=USD
 ```
-The estimate (`estimated_cost`) is in whatever currency you used and is shown only when both are set.
+Set all three or none (anything partial is a configuration error, exit 3). The estimate is always shown with
+its currency, for example `est. cost: USD $0.0123`, and is in the report JSON as `estimated_cost` with
+`cost_currency`. Anthropic lists prices in USD; the app does no currency conversion, so for AUD convert the two
+prices yourself and set `PRICE_CURRENCY=AUD`. `.env.example` has a table of the current model prices.
 
 ## Web interface
 A browser front end (Next.js and React) sits on a small local API.

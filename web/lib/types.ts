@@ -40,6 +40,7 @@ export interface Report {
   token_usage: Record<string, number>;
   elapsed_seconds: number | null;
   estimated_cost: number | null;
+  cost_currency: string | null;
 }
 
 export interface ProgressEvent {

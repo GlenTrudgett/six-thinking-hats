@@ -114,6 +114,7 @@ def create_app(settings: Settings, *, allowed_origins: list[str] | None = None) 
                     ),
                     price_input_per_mtok=r.price_input_per_mtok,
                     price_output_per_mtok=r.price_output_per_mtok,
+                    price_currency=r.price_currency,
                 )
                 queue.put_nowait(("report", report.model_dump(mode="json")))
             except (InputError, ValidationError) as exc:

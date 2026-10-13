@@ -51,6 +51,7 @@ class FinalReport(BaseModel):
     models_used: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
     elapsed_seconds: float | None = None
-    estimated_cost: float | None = None  # in the currency of the prices you configured
+    estimated_cost: float | None = None
+    cost_currency: str | None = None  # ISO code of the currency estimated_cost is in, e.g. "AUD"
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

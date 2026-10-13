@@ -20,6 +20,7 @@ from six_hats.interfaces import diagnose as diag
 from six_hats.llm.factory import ConfigError, create_model
 from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import configure_logging
+from six_hats.reporting.money import format_money
 from six_hats.reporting.render import render_json, render_markdown
 from six_hats.schemas.presets import PRESETS, SequenceOverride
 from six_hats.schemas.report import FinalReport
@@ -78,8 +79,11 @@ def _usage_line(report: FinalReport) -> str:
     parts = [f"{t.get('input_tokens', 0)} in / {t.get('output_tokens', 0)} out tokens"]
     if report.elapsed_seconds is not None:
         parts.append(f"{report.elapsed_seconds}s")
-    if report.estimated_cost is not None:
-        parts.append(f"~{report.estimated_cost:.4f} at your configured prices")
+    if report.estimated_cost is not None and report.cost_currency:
+        parts.append(
+            f"est. cost {format_money(report.estimated_cost, report.cost_currency)} "
+            "(at the prices you configured)"
+        )
     return "usage: " + ", ".join(parts)
 
 
@@ -236,6 +240,7 @@ def run(
                 on_progress=None if quiet else _progress,
                 price_input_per_mtok=settings.run.price_input_per_mtok,
                 price_output_per_mtok=settings.run.price_output_per_mtok,
+                price_currency=settings.run.price_currency,
                 limits=Limits(
                     node_timeout_seconds=settings.run.node_timeout_seconds,
                     node_retries=settings.run.node_retries,

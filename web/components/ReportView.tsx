@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/money";
 import type { Report } from "@/lib/types";
 
 function List({ title, items }: { title: string; items: string[] }) {
@@ -59,7 +60,9 @@ export function ReportView({ report }: { report: Report }) {
         {report.models_used.join(", ") || "model n/a"} · {t.input_tokens ?? 0} in / {t.output_tokens ?? 0} out
         tokens
         {report.elapsed_seconds != null ? ` · ${report.elapsed_seconds}s` : ""}
-        {report.estimated_cost != null ? ` · est. cost ${report.estimated_cost.toFixed(4)}` : ""}
+        {report.estimated_cost != null && report.cost_currency
+          ? ` · est. cost ${formatMoney(report.estimated_cost, report.cost_currency)}`
+          : ""}
       </p>
     </article>
   );
