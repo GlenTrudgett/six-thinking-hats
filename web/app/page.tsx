@@ -66,6 +66,20 @@ export default function Home() {
     }
   }
 
+  // Back to the page as it first loaded: empty question, "Let Blue decide", first preset, no results.
+  const finished = !busy && (report !== null || error !== null);
+  function reset() {
+    setQuestion("");
+    setChoice("auto");
+    setPresetId(presets[0]?.id ?? "");
+    setCustom([]);
+    setProgress([]);
+    setReport(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("q")?.focus({ preventScroll: true });
+  }
+
   function download() {
     if (!report) return;
     const url = URL.createObjectURL(new Blob([reportToMarkdown(report)], { type: "text/markdown" }));
@@ -141,6 +155,11 @@ export default function Home() {
       </section>
 
       {error && <p className="card error" role="alert">{error}</p>}
+      {finished && !report && (
+        <div className="row" style={{ marginTop: ".75rem" }}>
+          <button onClick={reset}>Start over</button>
+        </div>
+      )}
 
       {progress.length > 0 && (
         <section aria-live="polite">
@@ -156,6 +175,7 @@ export default function Home() {
           <div className="row" style={{ margin: "1rem 0 .5rem" }}>
             <button onClick={() => navigator.clipboard.writeText(reportToMarkdown(report))}>Copy as Markdown</button>
             <button onClick={download}>Download .md</button>
+            <button onClick={reset} title="Clear the question, the choices and the report">Start over</button>
           </div>
           <ReportView report={report} />
         </>

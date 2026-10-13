@@ -2,6 +2,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Added
+- Web UI: a "Start over" button after a run finishes (or fails) that clears the question, the hat choices,
+  the progress and the report, and returns the page to its first-load settings.
 ### Changed
 - Web UI restyled to echo the book cover: sage background with brushed streaks, ink-navy text, the six hat
   colours (measured from a photo of the cover, see `web/PALETTE.md`) and small hat icons on the chips. The UI
