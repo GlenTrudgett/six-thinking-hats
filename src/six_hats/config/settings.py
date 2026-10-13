@@ -70,6 +70,9 @@ class RunSettings(BaseModel):
     node_retries: int = Field(default=1, ge=0, le=5)
     retry_backoff_seconds: float = Field(default=1.0, ge=0)
     max_context_chars: int = Field(default=24_000, ge=1000)
+    # Optional prices per million tokens. Unset: show tokens only (prices change; none built in).
+    price_input_per_mtok: float | None = Field(default=None, ge=0)
+    price_output_per_mtok: float | None = Field(default=None, ge=0)
 
 
 class Settings(BaseSettings):

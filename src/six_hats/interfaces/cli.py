@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+import time
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
@@ -21,6 +22,7 @@ from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import configure_logging
 from six_hats.reporting.render import render_json, render_markdown
 from six_hats.schemas.presets import PRESETS, SequenceOverride
+from six_hats.schemas.report import FinalReport
 from six_hats.security.input_validation import InputError
 
 app = typer.Typer(no_args_is_help=True, help="Six Thinking Hats")
@@ -62,6 +64,23 @@ def _read_question(question: str | None, file: Path | None) -> str:
     if question is None:
         raise InputError("provide QUESTION, '-' for standard input, or --file")
     return question
+
+
+_STARTED = time.monotonic()
+
+
+def _progress(node: str, message: str) -> None:
+    typer.echo(f"[{time.monotonic() - _STARTED:6.1f}s] {node}: {message}", err=True)
+
+
+def _usage_line(report: FinalReport) -> str:
+    t = report.token_usage
+    parts = [f"{t.get('input_tokens', 0)} in / {t.get('output_tokens', 0)} out tokens"]
+    if report.elapsed_seconds is not None:
+        parts.append(f"{report.elapsed_seconds}s")
+    if report.estimated_cost is not None:
+        parts.append(f"~{report.estimated_cost:.4f} at your configured prices")
+    return "usage: " + ", ".join(parts)
 
 
 @app.command()
@@ -150,6 +169,9 @@ def run(
     sequence: Annotated[
         str | None, typer.Option("--sequence", help="Own order, e.g. white,green,black.")
     ] = None,
+    quiet: Annotated[
+        bool, typer.Option("--quiet", "-q", help="Do not print progress to standard error.")
+    ] = False,
 ) -> None:
     """Run the six-hats workflow on a question and print the report."""
     run_id = new_run_id()
@@ -169,6 +191,9 @@ def run(
                 run_id=run_id,
                 max_question_chars=settings.run.max_input_chars,
                 override=override,
+                on_progress=None if quiet else _progress,
+                price_input_per_mtok=settings.run.price_input_per_mtok,
+                price_output_per_mtok=settings.run.price_output_per_mtok,
                 limits=Limits(
                     node_timeout_seconds=settings.run.node_timeout_seconds,
                     node_retries=settings.run.node_retries,
@@ -200,5 +225,6 @@ def run(
         typer.echo(f"report written to {output}", err=True)
     else:
         typer.echo(rendered, nl=False)
+    typer.echo(_usage_line(report), err=True)
     if report.degraded:
         raise typer.Exit(EXIT_DEGRADED)

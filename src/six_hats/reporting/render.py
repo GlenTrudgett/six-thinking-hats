@@ -61,6 +61,10 @@ def render_markdown(report: FinalReport) -> str:
             f"tokens: {report.token_usage.get('input_tokens', 0)} in / "
             f"{report.token_usage.get('output_tokens', 0)} out"
         )
+    if report.elapsed_seconds is not None:
+        footer.append(f"time: {report.elapsed_seconds}s")
+    if report.estimated_cost is not None:
+        footer.append(f"est. cost: {report.estimated_cost:.4f}")
     parts.append("---\n" + " · ".join(footer))
     return "\n\n".join(parts) + "\n"
 
