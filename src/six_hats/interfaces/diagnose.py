@@ -46,6 +46,8 @@ def collect(settings: Settings) -> list[tuple[str, str]]:
     if llm.provider == "anthropic":
         key = "set" if llm.anthropic_api_key is not None else "NOT SET"
         rows.append(("anthropic api key", key))
+    elif llm.provider == "demo":
+        rows.append(("demo model", "offline, no key or network, output is not real analysis"))
     else:
         rows += [("local base url", llm.local.base_url), ("local api key", "set (hidden)")]
     rows += [

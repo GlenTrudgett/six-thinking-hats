@@ -39,7 +39,7 @@ class LocalServerSettings(BaseModel):
 class LLMSettings(BaseModel):
     model_config = ConfigDict(hide_input_in_errors=True)  # an error must never echo a key
 
-    provider: Literal["anthropic", "local"] = "anthropic"
+    provider: Literal["anthropic", "local", "demo"] = "anthropic"
     model: str = "claude-sonnet-5-5"
     anthropic_api_key: SecretStr | None = None
     temperature: float = Field(default=0.2, ge=0.0, le=2.0)
