@@ -2,6 +2,10 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Fixed
+- Web UI: a run longer than 30 seconds failed with "Error in input stream" because Next.js's rewrite proxy
+  cut the stream. The proxy timeout is now 15 minutes, the API sends a keep-alive comment every 10 seconds
+  during quiet steps, and a lost connection now gives a clear message.
 ### Changed
 - The cost estimate always carries its currency (`est. cost: USD $0.0123`). New setting
   `SIXHATS_RUN__PRICE_CURRENCY` is required together with the two prices; a partial set is a configuration

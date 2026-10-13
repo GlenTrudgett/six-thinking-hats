@@ -124,6 +124,9 @@ as Markdown. The model key stays in the Python API's `.env`; the browser never s
 `SIXHATS_API_URL` for the Next server to point elsewhere.
 
 ## Troubleshooting
+If the web UI shows "Error in input stream" or "connection lost" part-way through a run, the API stopped or
+the connection dropped: check the terminal running `sixhats serve` for errors and try again. (Runs over
+30 seconds used to be cut by the Next.js proxy; that is fixed.)
 ```
 sixhats diagnose          # versions and settings, secrets hidden
 sixhats diagnose --ping   # also makes one small call to the model

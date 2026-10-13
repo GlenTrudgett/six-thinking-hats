@@ -86,3 +86,13 @@ def test_cors_only_for_local_frontend(client):
 
 def test_serve_command_exists():
     assert "serve" in [c.name or c.callback.__name__ for c in cli.app.registered_commands]
+
+
+def test_quiet_periods_send_keepalive_comments(monkeypatch):
+    from six_hats.llm.demo import DemoChatModel
+
+    monkeypatch.setattr(api, "create_model", lambda _cfg: DemoChatModel(delay=0.25))
+    c = TestClient(api.create_app(Settings(_env_file=None), keepalive_seconds=0.05))
+    text = c.post("/api/run", json={"question": "q", "mode": "parallel"}).text
+    assert ": keepalive" in text
+    assert _events(text.replace(": keepalive\n\n", ""))[-1][0] == "report"

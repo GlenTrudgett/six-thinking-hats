@@ -24,7 +24,14 @@ export async function* streamRun(
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   for (;;) {
-    const { value, done } = await reader.read();
+    let chunk: ReadableStreamReadResult<string>;
+    try {
+      chunk = await reader.read();
+    } catch (e) {
+      if ((e as Error).name === "AbortError") throw e;
+      throw new Error("The connection to the API was lost before the run finished. Check that `sixhats serve` is still running, then try again.");
+    }
+    const { value, done } = chunk;
     if (done) return;
     buffer += value;
     let split: number;
