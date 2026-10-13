@@ -34,6 +34,10 @@ def create_model(cfg: LLMSettings) -> BaseChatModel:
             timeout=cfg.timeout_seconds,
             **_sampling_kwargs(cfg.model, cfg.temperature),
         )
+    if cfg.provider == "demo":
+        from six_hats.llm.demo import DemoChatModel
+
+        return DemoChatModel()
     if cfg.provider == "local":
         from langchain_openai import ChatOpenAI
 

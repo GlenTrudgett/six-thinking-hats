@@ -6,7 +6,21 @@ LLM-agnostic via LangChain (Anthropic and local OpenAI-compatible servers suppor
 
 **Status:** 1.0.0. Parallel and sequential modes, resilience, diagnose and a hardened container. See CHANGELOG.md.
 
-## Develop
+## Develop (no Docker needed)
+Run `make` to list the shortcuts:
+```
+make setup        # once: Python and web packages
+make check        # everything CI runs
+make test-fast K=preset   # quick tests, just the ones matching "preset"
+make demo         # a full run with the offline demo model: no key, no cost
+make web          # API (demo model) + web UI together: try the whole app with no key
+make dev          # API (your real model from .env) + web UI together
+make live-claude  # live tests on Claude;  make live-local MODEL=<name> for llama.cpp
+```
+The **demo model** (`SIXHATS_LLM__PROVIDER=demo`) needs no key or network and returns fixed text labelled
+"[demo output, not from a model]". It exercises framing, presets, progress, tokens and the report, so you
+can work on features and the UI without spending tokens. Never use it for real analysis.
+Without `make`, the same things are plain commands, for example:
 ```
 uv sync
 uv run pytest

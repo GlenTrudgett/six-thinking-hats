@@ -3,6 +3,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 ### Added
+- Makefile for local work without Docker (`make check`, `test-fast`, `demo`, `web`, `dev`, live tests).
+- Offline `demo` provider: runs the whole workflow with no key, network or cost, for trying the app and UI.
+### Added
 - Web interface: `sixhats serve` (FastAPI, optional `web` extra, loopback by default, streams progress as
   server-sent events) and a Next.js/React front end in `web/`.
 
