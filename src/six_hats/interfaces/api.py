@@ -1,6 +1,6 @@
 """A small local web API for the frontend. Optional: install with the `web` extra.
 
-It binds to loopback by default and holds the model key on the server only; the browser never sees it.
+It binds to loopback by default and keeps the model key on the server; the browser never sees it.
 `POST /api/run` answers with a server-sent event stream: `progress` events, then one `report` event
 (or one `error` event).
 """

@@ -155,6 +155,12 @@ def serve(
         ) from exc
     settings = _load_settings_or_exit()
     configure_logging(settings.log_level, settings.log_json)
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        typer.echo(
+            "warning: the API has no login. Anyone who can reach this port can spend your "
+            "model tokens. Keep it on 127.0.0.1 unless the network is trusted.",
+            err=True,
+        )
     uvicorn.run(create_app(settings), host=host, port=port, log_level="warning")
 
 

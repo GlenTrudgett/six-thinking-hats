@@ -2,6 +2,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com) and SemVer.
 
 ## [Unreleased]
+### Added
+- Web interface: `sixhats serve` (FastAPI, optional `web` extra, loopback by default, streams progress as
+  server-sent events) and a Next.js/React front end in `web/`.
 
 ## [1.0.0] - 2026-10-12
 First stable release. Verified live on Claude (claude-sonnet-5-5) and a local llama.cpp server, and in the

@@ -91,6 +91,20 @@ SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK=15.0
 ```
 The estimate (`estimated_cost`) is in whatever currency you used and is shown only when both are set.
 
+## Web interface
+A browser front end (Next.js and React) sits on a small local API.
+```
+uv sync --extra web                 # once: adds FastAPI and uvicorn
+uv run sixhats serve                # API on http://127.0.0.1:8000
+cd web && npm install && npm run dev   # UI on http://localhost:3000
+```
+Open http://localhost:3000, type a question, choose how the hats work (Blue decides, all five at once, a
+preset, or your own order), and press Run. Progress appears live, then the report, with Copy and Download
+as Markdown. The model key stays in the Python API's `.env`; the browser never sees it. The API listens on
+127.0.0.1 only by default and has **no login**, so do not expose it to a network you do not trust
+(`serve --host` warns if you do). The UI forwards `/api` to `http://127.0.0.1:8000`; set
+`SIXHATS_API_URL` for the Next server to point elsewhere.
+
 ## Troubleshooting
 ```
 sixhats diagnose          # versions and settings, secrets hidden
