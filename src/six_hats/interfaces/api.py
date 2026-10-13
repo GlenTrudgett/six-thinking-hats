@@ -58,7 +58,12 @@ def _sse(event: str, data: object) -> str:
     return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
 
-def create_app(settings: Settings, *, allowed_origins: list[str] | None = None) -> FastAPI:
+def create_app(
+    settings: Settings,
+    *,
+    allowed_origins: list[str] | None = None,
+    keepalive_seconds: float = 10.0,
+) -> FastAPI:
     app = FastAPI(title="Six Thinking Hats", version=__version__, docs_url=None, redoc_url=None)
     app.add_middleware(
         CORSMiddleware,
@@ -146,7 +151,16 @@ def create_app(settings: Settings, *, allowed_origins: list[str] | None = None) 
             task = asyncio.create_task(work())
             try:
                 yield _sse("start", {"run_id": run_id})
-                while (item := await queue.get()) is not None:
+                while True:
+                    try:
+                        item = await asyncio.wait_for(queue.get(), keepalive_seconds)
+                    except TimeoutError:
+                        # An SSE comment: ignored by the browser, but stops proxies and browsers
+                        # from treating a long quiet step (a slow model) as a dead connection.
+                        yield ": keepalive\n\n"
+                        continue
+                    if item is None:
+                        break
                     yield _sse(*item)
             finally:
                 task.cancel()  # the browser went away: stop spending tokens
