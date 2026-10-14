@@ -74,7 +74,7 @@ async def test_report_metadata_comes_from_code():
     model = make_hats_fake(responder)
     report = await run_workflow(Q, lambda _n: model, run_id="r5")
     assert [s.hat for s in report.hat_summaries].count("white") == 1  # de-duplicated
-    assert report.prompt_versions["blue_close"] == "2" and report.prompt_versions["black"] == "1"
+    assert report.prompt_versions["blue_close"] == "3" and report.prompt_versions["black"] == "1"
     assert report.missing_perspectives == []
 
 

@@ -5,6 +5,7 @@ from typer.testing import CliRunner
 
 from six_hats.interfaces import cli
 from six_hats.llm.factory import ConfigError
+from six_hats.security.input_validation import InputError
 from tests.support.hats_fake import default_response, make_hats_fake
 
 runner = CliRunner()
@@ -25,7 +26,7 @@ def test_version_and_hats():
     out = runner.invoke(cli.app, ["hats"]).output
     for hat in ("white", "red", "green", "yellow", "black", "blue"):
         assert hat in out
-    assert "blue_open v3" in out and "blue_close v2" in out
+    assert "blue_open v3" in out and "blue_close v3" in out
 
 
 def test_run_markdown_text_argument(monkeypatch):
@@ -111,3 +112,15 @@ def test_no_usable_hat_output_exit_5_with_run_id(monkeypatch):
     _use(monkeypatch, make_hats_fake(responder))
     result = runner.invoke(cli.app, ["run", "q"])
     assert result.exit_code == 5 and "run " in result.stderr
+
+
+def test_sequence_accepts_a_blue_checkpoint_and_rejects_a_misplaced_one():
+    from six_hats.interfaces.cli import _build_override
+    from six_hats.schemas.presets import SequenceOverride
+
+    assert _build_override(None, "white,blue,black") == SequenceOverride(
+        sequence=["white", "blue", "black"]
+    )
+    for bad in ("blue,white", "white,blue", "white,blue,blue,black"):
+        with pytest.raises(InputError, match="--sequence"):
+            _build_override(None, bad)

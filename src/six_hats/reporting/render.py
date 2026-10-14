@@ -12,6 +12,20 @@ def _bullets(items: list[str]) -> str:
     return "\n".join(f"- {sanitise_text(i)}" for i in items) if items else "_None._"
 
 
+def _checkpoint_section(report: FinalReport) -> list[str]:
+    if not report.checkpoints:
+        return []
+    out = ["## Blue checkpoints"]
+    for rec in report.checkpoints:
+        cp = rec.checkpoint
+        lines = [f"**After {rec.after.capitalize()}**", "", "Covered:", "", _bullets(cp.progress)]
+        if cp.gaps:
+            lines += ["", "Gaps:", "", _bullets(cp.gaps)]
+        lines += ["", f"Next focus: {sanitise_text(cp.next_focus)}"]
+        out.append("\n".join(lines))
+    return out
+
+
 def render_markdown(report: FinalReport) -> str:
     parts = [
         "# Six Thinking Hats report",
@@ -47,6 +61,7 @@ def render_markdown(report: FinalReport) -> str:
             f"- **{s.hat.capitalize()}:** {sanitise_text(s.summary)}" for s in report.hat_summaries
         )
         or "_None._",
+        *_checkpoint_section(report),
         "## Agreements",
         _bullets(report.agreements),
         "## Tensions",
@@ -79,6 +94,20 @@ def render_json(report: FinalReport) -> str:
             "tensions": [sanitise_text(x) for x in report.tensions],
             "recommended_next_steps": [sanitise_text(x) for x in report.recommended_next_steps],
             "open_questions": [sanitise_text(x) for x in report.open_questions],
+            "checkpoints": [
+                c.model_copy(
+                    update={
+                        "checkpoint": c.checkpoint.model_copy(
+                            update={
+                                "progress": [sanitise_text(x) for x in c.checkpoint.progress],
+                                "gaps": [sanitise_text(x) for x in c.checkpoint.gaps],
+                                "next_focus": sanitise_text(c.checkpoint.next_focus),
+                            }
+                        )
+                    }
+                )
+                for c in report.checkpoints
+            ],
             "hat_summaries": [
                 s.model_copy(update={"summary": sanitise_text(s.summary)})
                 for s in report.hat_summaries

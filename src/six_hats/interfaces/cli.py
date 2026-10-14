@@ -22,6 +22,7 @@ from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import configure_logging
 from six_hats.reporting.money import format_money
 from six_hats.reporting.render import render_json, render_markdown
+from six_hats.schemas.hat_output import blue_step_problem
 from six_hats.schemas.presets import PRESETS, SequenceOverride
 from six_hats.schemas.report import FinalReport
 from six_hats.security.input_validation import InputError
@@ -110,7 +111,7 @@ def presets() -> None:
         typer.echo(f"  use when: {p.use_when}")
 
 
-_HAT_NAMES = {"white", "red", "green", "yellow", "black"}
+_HAT_NAMES = {"white", "red", "green", "yellow", "black", "blue"}
 
 
 class RunMode(StrEnum):
@@ -133,7 +134,12 @@ def _build_override(
         names = [n.strip().lower() for n in sequence.split(",") if n.strip()]
         bad = [n for n in names if n not in _HAT_NAMES]
         if bad or not names:
-            raise InputError("--sequence needs comma-separated hats: white,red,green,yellow,black")
+            raise InputError(
+                "--sequence needs comma-separated hats: white,red,green,yellow,black "
+                "(blue may sit between them as a checkpoint)"
+            )
+        if problem := blue_step_problem(names):  # type: ignore[arg-type]
+            raise InputError(f"--sequence: {problem}")
         try:
             return SequenceOverride.model_validate({"sequence": names})
         except ValidationError as exc:
@@ -207,7 +213,10 @@ def run(
         str | None, typer.Option("--preset", help="Use a preset sequence (see 'presets').")
     ] = None,
     sequence: Annotated[
-        str | None, typer.Option("--sequence", help="Own order, e.g. white,green,black.")
+        str | None,
+        typer.Option(
+            "--sequence", help="Own order, no spaces: white,green,blue,black (blue = checkpoint)."
+        ),
     ] = None,
     quiet: Annotated[
         bool, typer.Option("--quiet", "-q", help="Do not print progress to standard error.")
