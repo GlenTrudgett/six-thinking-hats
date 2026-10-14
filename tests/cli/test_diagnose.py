@@ -15,7 +15,7 @@ def test_diagnose_shows_facts_and_hides_the_key(monkeypatch):
     assert result.exit_code == 0
     assert "anthropic api key" in result.output and "set" in result.output
     assert KEY not in result.output and KEY not in result.stderr
-    assert "blue_close v2" in result.output and "langgraph" in result.output
+    assert "blue_close v3" in result.output and "langgraph" in result.output
 
 
 def test_diagnose_without_key_exits_3(monkeypatch):

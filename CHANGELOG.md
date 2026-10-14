@@ -14,6 +14,21 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
   never a pass/fail gate. `tests/quality/compare.py` sets result files side by side. The tooling itself is
   tested offline on every PR. New: `make quality`, `quality-judge`, `quality-local`, `quality-compare`; a
   nightly `quality` job (off unless the repository variable `SIXHATS_NIGHTLY_QUALITY` is `true`).
+- Quality checks, layer 1 (offline, run on every PR): prompt contract tests that cover every prompt file
+  automatically (own hat, version, length limit, "data not instructions", preset list reaches Blue-Open);
+  property-based report checks with Hypothesis (sequence length, one call per step, one summary per hat,
+  `degraded` exactly when something failed, failed hats never reported as covered, Blue-Open fallback);
+  and golden JSON-schema snapshots in `tests/golden/schemas.json`. Intentional schema changes are
+  regenerated with `UPDATE_GOLDEN=1 uv run pytest tests/unit/test_golden_schema.py --no-cov`.
+  New dev dependency: `hypothesis`.
+- Blue checkpoints: `blue` is now a valid step inside your own order (`run --sequence white,green,blue,black`,
+  the API, and a "+ blue checkpoint" button in the web interface). Blue summarises progress, lists gaps and
+  gives the next hat a focus line. It cannot change the sequence. Rules in code: not first, not last, not
+  adjacent to another Blue, counts toward the 8-step cap. A failed checkpoint is recorded and skipped.
+  Reports gain `checkpoints` and a "Blue checkpoints" section. New prompt `blue_checkpoint` v1.
+
+### Changed
+- Blue-Close prompt is v3: it may use the checkpoint notes to describe how the thinking progressed.
 
 ## [1.1.0] - 2026-10-13
 Presets, forced parallel mode, progress and cost reporting, and a web interface.

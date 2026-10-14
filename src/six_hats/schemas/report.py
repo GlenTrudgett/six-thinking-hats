@@ -5,8 +5,9 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from six_hats.schemas.checkpoint import CheckpointRecord
 from six_hats.schemas.failures import FailureRecord
-from six_hats.schemas.hat_output import ThinkingHatName, trim_to
+from six_hats.schemas.hat_output import SequenceStep, ThinkingHatName, trim_to
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=800)]
 
@@ -43,7 +44,8 @@ class FinalReport(BaseModel):
     open_questions: list[str] = Field(default_factory=list)
     missing_perspectives: list[ThinkingHatName] = Field(default_factory=list)
     mode: Literal["parallel", "sequential"] = "parallel"
-    sequence: list[ThinkingHatName] = Field(default_factory=list)
+    sequence: list[SequenceStep] = Field(default_factory=list)
+    checkpoints: list[CheckpointRecord] = Field(default_factory=list)
     preset: str | None = None
     preset_source: Literal["book", "advanced"] | None = None
     degraded: bool = False

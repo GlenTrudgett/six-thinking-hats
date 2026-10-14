@@ -53,7 +53,17 @@ def _close() -> dict[str, Any]:
     }
 
 
+def _checkpoint() -> dict[str, Any]:
+    return {
+        "progress": [f"The hats so far have each added a view. {_TAG}"],
+        "gaps": ["Nothing real was analysed: this is the demo model."],
+        "next_focus": f"Carry on with the next hat. {_TAG}",
+    }
+
+
 def _reply(system: str) -> dict[str, Any]:
+    if "BlueCheckpoint" in system:
+        return _checkpoint()
     if "BlueCloseOutput" in system:
         return _close()
     if '"Framing"' in system:

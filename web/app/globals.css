@@ -73,6 +73,7 @@ button.hatbtn { display: inline-flex; align-items: center; gap: .3rem; padding: 
 
 .hatcard { border-left: 8px solid var(--line); padding: .2rem 0 .2rem .8rem; margin: .5rem 0; }
 .hatcard.white { border-color: #fff; box-shadow: -1px 0 0 var(--line); }
+.hatcard.blue { border-color: var(--blue); }
 .hatcard.red { border-color: var(--red); } .hatcard.green { border-color: var(--green); }
 .hatcard.yellow { border-color: var(--yellow); } .hatcard.black { border-color: var(--black); }
 .meta { color: var(--ink-soft); font-size: .9rem; margin-top: 1rem; }

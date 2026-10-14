@@ -1,4 +1,27 @@
 export type Hat = "white" | "red" | "green" | "yellow" | "black";
+/** A step in a sequence: a coloured hat, or "blue" for a Blue checkpoint between hats. */
+export type Step = Hat | "blue";
+
+export interface BlueCheckpoint {
+  progress: string[];
+  gaps: string[];
+  next_focus: string;
+}
+
+export interface CheckpointRecord {
+  after: Hat;
+  checkpoint: BlueCheckpoint;
+}
+
+/** Why a custom order is not allowed, or null. Mirrors the server rule. */
+export function blueProblem(steps: Step[]): string | null {
+  if (!steps.includes("blue")) return null;
+  if (steps[0] === "blue" || steps[steps.length - 1] === "blue")
+    return "A Blue checkpoint sits between hats, not first or last.";
+  if (steps.some((s, i) => s === "blue" && steps[i + 1] === "blue"))
+    return "Two Blue checkpoints cannot be next to each other.";
+  return null;
+}
 
 export interface PresetInfo {
   id: string;
@@ -31,7 +54,8 @@ export interface Report {
   open_questions: string[];
   missing_perspectives: Hat[];
   mode: "parallel" | "sequential";
-  sequence: Hat[];
+  sequence: Step[];
+  checkpoints: CheckpointRecord[];
   preset: string | null;
   preset_source: string | null;
   degraded: boolean;
@@ -52,7 +76,7 @@ export interface RunOptions {
   question: string;
   mode: "auto" | "parallel";
   preset: string | null;
-  sequence: Hat[] | null;
+  sequence: Step[] | null;
 }
 
 export type ServerEvent =

@@ -15,7 +15,7 @@ from typing import Annotated, Literal
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from six_hats import __version__
 from six_hats.config.settings import Settings
@@ -24,7 +24,7 @@ from six_hats.graph.runner import new_run_id, run_workflow
 from six_hats.llm.factory import ConfigError, create_model
 from six_hats.llm.structured import StructuredOutputError
 from six_hats.observability.logging import get_logger
-from six_hats.schemas.hat_output import THINKING_HATS, ThinkingHatName
+from six_hats.schemas.hat_output import THINKING_HATS, SequenceStep, blue_step_problem
 from six_hats.schemas.presets import PRESETS, SequenceOverride
 from six_hats.security.input_validation import InputError
 
@@ -36,7 +36,14 @@ class RunRequest(BaseModel):
     question: Annotated[str, Field(min_length=1, max_length=MAX_QUESTION_CHARS)]
     mode: Literal["auto", "parallel"] = "auto"
     preset: str | None = None
-    sequence: list[ThinkingHatName] | None = Field(default=None, min_length=1, max_length=8)
+    sequence: list[SequenceStep] | None = Field(default=None, min_length=1, max_length=8)
+
+    @field_validator("sequence")
+    @classmethod
+    def _blue_rules(cls, value: list[SequenceStep] | None) -> list[SequenceStep] | None:
+        if value is not None and (problem := blue_step_problem(value)):
+            raise ValueError(problem)
+        return value
 
 
 def _override(req: RunRequest) -> SequenceOverride | None:
