@@ -63,7 +63,10 @@ plugins = ["pydantic.mypy"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "--disable-socket --allow-unix-socket --cov=six_hats --cov-report=term-missing --cov-fail-under=85"
-markers = ["live: calls a real model; excluded from CI"]
+markers = [
+  "live: calls a real model; excluded from CI",
+  "quality: behavioural checks on a real model (SIXHATS_QUALITY=1); excluded from CI",
+]
 
 [tool.bandit]
 exclude_dirs = ["tests"]

@@ -1,6 +1,6 @@
 # Everyday commands for working on this project without Docker. Run `make` to see them.
 .DEFAULT_GOAL := help
-.PHONY: help setup check fix test test-fast demo ui api web dev live-claude live-local clean
+.PHONY: help setup check fix test test-fast demo ui api web dev live-claude live-local quality quality-judge quality-local quality-compare clean
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-12s %s\n", $$1, $$2}'
@@ -52,6 +52,25 @@ live-local:  ## Live tests against llama.cpp: make live-local MODEL=<name> [URL=
 	SIXHATS_LIVE=1 SIXHATS_LLM__PROVIDER=local SIXHATS_LLM__MODEL=$(MODEL) \
 	SIXHATS_LLM__LOCAL__BASE_URL=$(or $(URL),http://127.0.0.1:8080/v1) \
 	uv run pytest tests/live -m live --no-cov -s
+
+quality:  ## Behavioural checks on Claude, spends money: make quality [LIMIT=3] [BUDGET=1.50]
+	SIXHATS_QUALITY=1 SIXHATS_LLM__PROVIDER=anthropic \
+	$(if $(LIMIT),SIXHATS_QUALITY_LIMIT=$(LIMIT),) $(if $(BUDGET),SIXHATS_QUALITY_BUDGET=$(BUDGET),) \
+	uv run pytest tests/quality -m quality --no-cov -s
+
+quality-judge:  ## As 'quality', plus judge scores (one extra model call per question)
+	SIXHATS_QUALITY=1 SIXHATS_QUALITY_JUDGE=1 SIXHATS_LLM__PROVIDER=anthropic \
+	$(if $(LIMIT),SIXHATS_QUALITY_LIMIT=$(LIMIT),) $(if $(BUDGET),SIXHATS_QUALITY_BUDGET=$(BUDGET),) \
+	uv run pytest tests/quality -m quality --no-cov -s
+
+quality-local:  ## Behavioural checks on llama.cpp (free): make quality-local MODEL=<name> [URL=...]
+	SIXHATS_QUALITY=1 SIXHATS_LLM__PROVIDER=local SIXHATS_LLM__MODEL=$(MODEL) \
+	SIXHATS_LLM__LOCAL__BASE_URL=$(or $(URL),http://127.0.0.1:8080/v1) \
+	$(if $(LIMIT),SIXHATS_QUALITY_LIMIT=$(LIMIT),) \
+	uv run pytest tests/quality -m quality --no-cov -s
+
+quality-compare:  ## Compare result files: make quality-compare FILES="quality-results/a.json quality-results/b.json"
+	uv run python -m tests.quality.compare $(FILES)
 
 clean:  ## Remove caches and build output
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage web/.next

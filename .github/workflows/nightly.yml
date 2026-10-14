@@ -29,6 +29,41 @@ jobs:
       - name: No secrets baked in
         run: |
           ! docker run --rm --entrypoint sh sixhats:ci -c 'ls -A /work /app | grep -i "\.env"'
+  quality:
+    # Behavioural checks on a real model (docs/plans/quality-checks.md, layers 2 and 3). Off unless the
+    # repository variable SIXHATS_NIGHTLY_QUALITY is "true". Spend is capped by SIXHATS_QUALITY_BUDGET.
+    runs-on: ubuntu-latest
+    if: ${{ vars.SIXHATS_NIGHTLY_QUALITY == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with: { enable-cache: true }
+      - run: uv sync --frozen
+      - name: Quality checks
+        env:
+          SIXHATS_QUALITY: "1"
+          SIXHATS_QUALITY_LIMIT: ${{ vars.SIXHATS_QUALITY_LIMIT }}
+          SIXHATS_QUALITY_BUDGET: ${{ vars.SIXHATS_QUALITY_BUDGET }}
+          SIXHATS_QUALITY_JUDGE: ${{ vars.SIXHATS_QUALITY_JUDGE }}
+          SIXHATS_LLM__PROVIDER: anthropic
+          SIXHATS_LLM__ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PRICE_IN: ${{ vars.SIXHATS_PRICE_INPUT_PER_MTOK }}
+          PRICE_OUT: ${{ vars.SIXHATS_PRICE_OUTPUT_PER_MTOK }}
+          PRICE_CUR: ${{ vars.SIXHATS_PRICE_CURRENCY }}
+        run: |
+          # Prices are passed only when all three are set (a partial set is a configuration error).
+          if [ -n "$PRICE_IN" ] && [ -n "$PRICE_OUT" ] && [ -n "$PRICE_CUR" ]; then
+            export SIXHATS_RUN__PRICE_INPUT_PER_MTOK="$PRICE_IN"
+            export SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK="$PRICE_OUT"
+            export SIXHATS_RUN__PRICE_CURRENCY="$PRICE_CUR"
+          fi
+          uv run pytest tests/quality -m quality --no-cov -s
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-results
+          path: quality-results/
+          if-no-files-found: ignore
   live:
     # Only runs when the repository has an ANTHROPIC_API_KEY secret. Kept separate so a missing
     # key or an API outage never hides the offline results above.
