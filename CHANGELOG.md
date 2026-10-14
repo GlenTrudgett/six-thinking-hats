@@ -4,6 +4,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 ## [Unreleased]
 
 ### Added
+- Quality checks, layer 1 (offline, run on every PR): prompt contract tests that cover every prompt file
+  automatically (own hat, version, length limit, "data not instructions", preset list reaches Blue-Open);
+  property-based report checks with Hypothesis (sequence length, one call per step, one summary per hat,
+  `degraded` exactly when something failed, failed hats never reported as covered, Blue-Open fallback);
+  and golden JSON-schema snapshots in `tests/golden/schemas.json`. Intentional schema changes are
+  regenerated with `UPDATE_GOLDEN=1 uv run pytest tests/unit/test_golden_schema.py --no-cov`.
+  New dev dependency: `hypothesis`.
 - Blue checkpoints: `blue` is now a valid step inside your own order (`run --sequence white,green,blue,black`,
   the API, and a "+ blue checkpoint" button in the web interface). Blue summarises progress, lists gaps and
   gives the next hat a focus line. It cannot change the sequence. Rules in code: not first, not last, not

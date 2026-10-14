@@ -1,0 +1,672 @@
+{
+  "BlueCloseOutput": {
+    "$defs": {
+      "HatSummary": {
+        "properties": {
+          "hat": {
+            "enum": [
+              "white",
+              "red",
+              "green",
+              "yellow",
+              "black"
+            ],
+            "title": "Hat",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hat",
+          "summary"
+        ],
+        "title": "HatSummary",
+        "type": "object"
+      }
+    },
+    "description": "What Blue-Close (the LLM) writes. Metadata is added in code, never by the model.",
+    "properties": {
+      "agreements": {
+        "items": {
+          "maxLength": 800,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Agreements",
+        "type": "array"
+      },
+      "conclusions": {
+        "items": {
+          "maxLength": 800,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "minItems": 1,
+        "title": "Conclusions",
+        "type": "array"
+      },
+      "framing_summary": {
+        "maxLength": 800,
+        "minLength": 1,
+        "title": "Framing Summary",
+        "type": "string"
+      },
+      "hat_summaries": {
+        "items": {
+          "$ref": "#/$defs/HatSummary"
+        },
+        "maxItems": 5,
+        "title": "Hat Summaries",
+        "type": "array"
+      },
+      "open_questions": {
+        "items": {
+          "maxLength": 800,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Open Questions",
+        "type": "array"
+      },
+      "recommended_next_steps": {
+        "items": {
+          "maxLength": 800,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Recommended Next Steps",
+        "type": "array"
+      },
+      "tensions": {
+        "items": {
+          "maxLength": 800,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Tensions",
+        "type": "array"
+      }
+    },
+    "required": [
+      "framing_summary",
+      "conclusions"
+    ],
+    "title": "BlueCloseOutput",
+    "type": "object"
+  },
+  "FinalReport": {
+    "$defs": {
+      "BlueCheckpoint": {
+        "description": "What the Blue Hat writes between two hats.",
+        "properties": {
+          "gaps": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Gaps",
+            "type": "array"
+          },
+          "next_focus": {
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Next Focus",
+            "type": "string"
+          },
+          "progress": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Progress",
+            "type": "array"
+          }
+        },
+        "required": [
+          "progress",
+          "next_focus"
+        ],
+        "title": "BlueCheckpoint",
+        "type": "object"
+      },
+      "CheckpointRecord": {
+        "description": "A checkpoint plus where it happened. `after` is the hat whose output it follows.",
+        "properties": {
+          "after": {
+            "enum": [
+              "white",
+              "red",
+              "green",
+              "yellow",
+              "black"
+            ],
+            "title": "After",
+            "type": "string"
+          },
+          "checkpoint": {
+            "$ref": "#/$defs/BlueCheckpoint"
+          }
+        },
+        "required": [
+          "after",
+          "checkpoint"
+        ],
+        "title": "CheckpointRecord",
+        "type": "object"
+      },
+      "FailureRecord": {
+        "description": "A node failure. The message is sanitised and never contains prompt content.",
+        "properties": {
+          "attempts": {
+            "default": 1,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "error_type": {
+            "title": "Error Type",
+            "type": "string"
+          },
+          "hat": {
+            "anyOf": [
+              {
+                "enum": [
+                  "white",
+                  "red",
+                  "green",
+                  "yellow",
+                  "black"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hat"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "node": {
+            "title": "Node",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "error_type"
+        ],
+        "title": "FailureRecord",
+        "type": "object"
+      },
+      "HatSummary": {
+        "properties": {
+          "hat": {
+            "enum": [
+              "white",
+              "red",
+              "green",
+              "yellow",
+              "black"
+            ],
+            "title": "Hat",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hat",
+          "summary"
+        ],
+        "title": "HatSummary",
+        "type": "object"
+      }
+    },
+    "properties": {
+      "agreements": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Agreements",
+        "type": "array"
+      },
+      "checkpoints": {
+        "items": {
+          "$ref": "#/$defs/CheckpointRecord"
+        },
+        "title": "Checkpoints",
+        "type": "array"
+      },
+      "conclusions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Conclusions",
+        "type": "array"
+      },
+      "cost_currency": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Cost Currency"
+      },
+      "degraded": {
+        "default": false,
+        "title": "Degraded",
+        "type": "boolean"
+      },
+      "elapsed_seconds": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Elapsed Seconds"
+      },
+      "estimated_cost": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Estimated Cost"
+      },
+      "failures": {
+        "items": {
+          "$ref": "#/$defs/FailureRecord"
+        },
+        "title": "Failures",
+        "type": "array"
+      },
+      "framing_summary": {
+        "title": "Framing Summary",
+        "type": "string"
+      },
+      "generated_at": {
+        "format": "date-time",
+        "title": "Generated At",
+        "type": "string"
+      },
+      "hat_summaries": {
+        "items": {
+          "$ref": "#/$defs/HatSummary"
+        },
+        "title": "Hat Summaries",
+        "type": "array"
+      },
+      "missing_perspectives": {
+        "items": {
+          "enum": [
+            "white",
+            "red",
+            "green",
+            "yellow",
+            "black"
+          ],
+          "type": "string"
+        },
+        "title": "Missing Perspectives",
+        "type": "array"
+      },
+      "mode": {
+        "default": "parallel",
+        "enum": [
+          "parallel",
+          "sequential"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "models_used": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Models Used",
+        "type": "array"
+      },
+      "open_questions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Open Questions",
+        "type": "array"
+      },
+      "preset": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Preset"
+      },
+      "preset_source": {
+        "anyOf": [
+          {
+            "enum": [
+              "book",
+              "advanced"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Preset Source"
+      },
+      "prompt_versions": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Prompt Versions",
+        "type": "object"
+      },
+      "recommended_next_steps": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Recommended Next Steps",
+        "type": "array"
+      },
+      "run_id": {
+        "title": "Run Id",
+        "type": "string"
+      },
+      "sequence": {
+        "items": {
+          "enum": [
+            "white",
+            "red",
+            "green",
+            "yellow",
+            "black",
+            "blue"
+          ],
+          "type": "string"
+        },
+        "title": "Sequence",
+        "type": "array"
+      },
+      "tensions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Tensions",
+        "type": "array"
+      },
+      "token_usage": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "title": "Token Usage",
+        "type": "object"
+      }
+    },
+    "required": [
+      "run_id",
+      "framing_summary"
+    ],
+    "title": "FinalReport",
+    "type": "object"
+  },
+  "Framing": {
+    "description": "Blue-Open's framing. Mode and sequence are validated against allow-lists.",
+    "properties": {
+      "focus": {
+        "maxLength": 400,
+        "minLength": 1,
+        "title": "Focus",
+        "type": "string"
+      },
+      "mode": {
+        "default": "parallel",
+        "enum": [
+          "parallel",
+          "sequential"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "objective": {
+        "maxLength": 400,
+        "minLength": 1,
+        "title": "Objective",
+        "type": "string"
+      },
+      "preset": {
+        "anyOf": [
+          {
+            "enum": [
+              "initial_ideas",
+              "choosing_between_alternatives",
+              "identifying_solutions",
+              "quick_feedback",
+              "process_improvement",
+              "problem_solving",
+              "performance_review"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "custom",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Preset"
+      },
+      "rationale": {
+        "default": "",
+        "maxLength": 800,
+        "title": "Rationale",
+        "type": "string"
+      },
+      "sequence": {
+        "items": {
+          "enum": [
+            "white",
+            "red",
+            "green",
+            "yellow",
+            "black",
+            "blue"
+          ],
+          "type": "string"
+        },
+        "maxItems": 8,
+        "minItems": 1,
+        "title": "Sequence",
+        "type": "array"
+      },
+      "thinking_type": {
+        "enum": [
+          "new_idea",
+          "evaluation",
+          "problem"
+        ],
+        "title": "Thinking Type",
+        "type": "string"
+      }
+    },
+    "required": [
+      "focus",
+      "objective",
+      "thinking_type",
+      "sequence"
+    ],
+    "title": "Framing",
+    "type": "object"
+  },
+  "HatOutput": {
+    "properties": {
+      "assumptions": {
+        "items": {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Assumptions",
+        "type": "array"
+      },
+      "confidence": {
+        "anyOf": [
+          {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Confidence"
+      },
+      "hat": {
+        "enum": [
+          "white",
+          "red",
+          "green",
+          "yellow",
+          "black"
+        ],
+        "title": "Hat",
+        "type": "string"
+      },
+      "key_points": {
+        "items": {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "minItems": 3,
+        "title": "Key Points",
+        "type": "array"
+      },
+      "open_questions": {
+        "items": {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 7,
+        "title": "Open Questions",
+        "type": "array"
+      }
+    },
+    "required": [
+      "hat",
+      "key_points"
+    ],
+    "title": "HatOutput",
+    "type": "object"
+  },
+  "SequenceOverride": {
+    "description": "A caller's choice that replaces Blue-Open's. Exactly one of: preset, sequence, parallel.",
+    "properties": {
+      "parallel": {
+        "default": false,
+        "title": "Parallel",
+        "type": "boolean"
+      },
+      "preset": {
+        "anyOf": [
+          {
+            "enum": [
+              "initial_ideas",
+              "choosing_between_alternatives",
+              "identifying_solutions",
+              "quick_feedback",
+              "process_improvement",
+              "problem_solving",
+              "performance_review"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Preset"
+      },
+      "sequence": {
+        "anyOf": [
+          {
+            "items": {
+              "enum": [
+                "white",
+                "red",
+                "green",
+                "yellow",
+                "black",
+                "blue"
+              ],
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Sequence"
+      }
+    },
+    "title": "SequenceOverride",
+    "type": "object"
+  }
+}

@@ -1,6 +1,6 @@
 # Plan: quality checks
 
-Status: plan only. Goal: catch regressions in prompts, models and graph behaviour that unit tests with fake
+Status: layer 1 implemented (see CHANGELOG, Unreleased). Layers 2 and 3 not yet. Goal: catch regressions in prompts, models and graph behaviour that unit tests with fake
 models cannot see. Three layers, cheapest first.
 
 ## Layer 1: deterministic checks (offline, every PR)
