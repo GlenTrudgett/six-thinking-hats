@@ -11,6 +11,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
   and golden JSON-schema snapshots in `tests/golden/schemas.json`. Intentional schema changes are
   regenerated with `UPDATE_GOLDEN=1 uv run pytest tests/unit/test_golden_schema.py --no-cov`.
   New dev dependency: `hypothesis`.
+- Blue checkpoints: `blue` is now a valid step inside your own order (`run --sequence white,green,blue,black`,
+  the API, and a "+ blue checkpoint" button in the web interface). Blue summarises progress, lists gaps and
+  gives the next hat a focus line. It cannot change the sequence. Rules in code: not first, not last, not
+  adjacent to another Blue, counts toward the 8-step cap. A failed checkpoint is recorded and skipped.
+  Reports gain `checkpoints` and a "Blue checkpoints" section. New prompt `blue_checkpoint` v1.
+
+### Changed
+- Blue-Close prompt is v3: it may use the checkpoint notes to describe how the thinking progressed.
 
 ## [1.1.0] - 2026-10-13
 Presets, forced parallel mode, progress and cost reporting, and a web interface.

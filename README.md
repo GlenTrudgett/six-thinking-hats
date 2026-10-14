@@ -80,11 +80,26 @@ Presets (Blue opens and closes every one):
 How the order is decided: `--preset` or `--sequence` wins. Otherwise Blue-Open may choose a preset (its
 order then comes from code, not the model) or propose its own order. A preset or sequence runs the hats
 one at a time, each seeing what came before. `--preset` and `--sequence` cannot be combined, and
-`--sequence` accepts only `white`, `red`, `green`, `yellow`, `black`. In an evaluation, yellow is placed
+`--sequence` accepts `white`, `red`, `green`, `yellow`, `black` and `blue` (see below). In an evaluation, yellow is placed
 before black. The report names the preset used.
 
 The preset orders come from a secondary source, **not the book text**, and are marked "advanced" in the
 code and in reports.
+
+### Blue checkpoints
+Put `blue` between hats in your own order and the Blue Hat pauses there:
+```
+sixhats run "Should we open a second site?" --sequence white,green,blue,black,yellow
+```
+At a checkpoint Blue reads what the hats have said so far and writes what has been covered (up to 3
+points), what is still missing (up to 3) and a one-line focus for the **next hat**, which receives it as
+data. The report gains a "Blue checkpoints" section and the final summary takes the checkpoints into
+account. Rules, enforced in code: Blue cannot be the first or last step (Blue already opens and closes
+every run), two Blues cannot be adjacent, and the 8-step cap counts Blue. A checkpoint cannot change the
+order of the hats. If one fails it is recorded in the report (the run is then marked degraded) and the
+next hat runs without it. Each checkpoint is an extra model call and counts toward the cost estimate.
+No preset uses a checkpoint yet, and Blue-Open is not asked to add them; they are chosen by you (in the
+web interface: "+ blue checkpoint" under "My own order").
 
 ### Progress and cost
 While a run is going, each step prints to standard error (the report still goes to standard output, so

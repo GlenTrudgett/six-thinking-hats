@@ -106,6 +106,69 @@
   },
   "FinalReport": {
     "$defs": {
+      "BlueCheckpoint": {
+        "description": "What the Blue Hat writes between two hats.",
+        "properties": {
+          "gaps": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Gaps",
+            "type": "array"
+          },
+          "next_focus": {
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Next Focus",
+            "type": "string"
+          },
+          "progress": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Progress",
+            "type": "array"
+          }
+        },
+        "required": [
+          "progress",
+          "next_focus"
+        ],
+        "title": "BlueCheckpoint",
+        "type": "object"
+      },
+      "CheckpointRecord": {
+        "description": "A checkpoint plus where it happened. `after` is the hat whose output it follows.",
+        "properties": {
+          "after": {
+            "enum": [
+              "white",
+              "red",
+              "green",
+              "yellow",
+              "black"
+            ],
+            "title": "After",
+            "type": "string"
+          },
+          "checkpoint": {
+            "$ref": "#/$defs/BlueCheckpoint"
+          }
+        },
+        "required": [
+          "after",
+          "checkpoint"
+        ],
+        "title": "CheckpointRecord",
+        "type": "object"
+      },
       "FailureRecord": {
         "description": "A node failure. The message is sanitised and never contains prompt content.",
         "properties": {
@@ -188,6 +251,13 @@
           "type": "string"
         },
         "title": "Agreements",
+        "type": "array"
+      },
+      "checkpoints": {
+        "items": {
+          "$ref": "#/$defs/CheckpointRecord"
+        },
+        "title": "Checkpoints",
         "type": "array"
       },
       "conclusions": {
@@ -351,7 +421,8 @@
             "red",
             "green",
             "yellow",
-            "black"
+            "black",
+            "blue"
           ],
           "type": "string"
         },
@@ -442,7 +513,8 @@
             "red",
             "green",
             "yellow",
-            "black"
+            "black",
+            "blue"
           ],
           "type": "string"
         },
@@ -577,7 +649,8 @@
                 "red",
                 "green",
                 "yellow",
-                "black"
+                "black",
+                "blue"
               ],
               "type": "string"
             },

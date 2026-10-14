@@ -3,6 +3,7 @@ from __future__ import annotations
 import operator
 from typing import Annotated, TypedDict
 
+from six_hats.schemas.checkpoint import CheckpointRecord
 from six_hats.schemas.failures import FailureRecord
 from six_hats.schemas.framing import Framing
 from six_hats.schemas.hat_output import HatOutput
@@ -22,4 +23,5 @@ class GraphState(TypedDict, total=False):
     framing: Framing
     outputs: Annotated[dict[str, HatOutput], merge_outputs]
     failures: Annotated[list[FailureRecord], operator.add]
+    checkpoints: Annotated[list[CheckpointRecord], operator.add]
     report: FinalReport

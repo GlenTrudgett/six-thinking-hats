@@ -5,7 +5,8 @@ import { HatChip, HatIcon } from "@/components/HatIcon";
 import { ReportView } from "@/components/ReportView";
 import { reportToMarkdown } from "@/lib/markdown";
 import { streamRun } from "@/lib/stream";
-import type { Hat, PresetInfo, ProgressEvent, Report } from "@/lib/types";
+import { blueProblem } from "@/lib/types";
+import type { Hat, PresetInfo, ProgressEvent, Report, Step } from "@/lib/types";
 
 const MAX_QUESTION = 8000;
 type Choice = "auto" | "parallel" | "preset" | "custom";
@@ -16,7 +17,7 @@ export default function Home() {
   const [presets, setPresets] = useState<PresetInfo[]>([]);
   const [hats, setHats] = useState<Hat[]>(["white", "red", "green", "yellow", "black"]);
   const [presetId, setPresetId] = useState("");
-  const [custom, setCustom] = useState<Hat[]>([]);
+  const [custom, setCustom] = useState<Step[]>([]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<(ProgressEvent & { at: number })[]>([]);
   const [report, setReport] = useState<Report | null>(null);
@@ -37,7 +38,7 @@ export default function Home() {
   const preset = presets.find((p) => p.id === presetId);
   const canRun =
     !busy && question.trim().length > 0 && question.length <= MAX_QUESTION &&
-    (choice !== "custom" || custom.length > 0) && (choice !== "preset" || !!preset);
+    (choice !== "custom" || (custom.length > 0 && !blueProblem(custom))) && (choice !== "preset" || !!preset);
 
   async function run() {
     setBusy(true); setError(null); setReport(null); setProgress([]);
@@ -138,12 +139,16 @@ export default function Home() {
                 <button key={h} className={`chip hatbtn ${h}`} disabled={custom.length >= 8}
                   onClick={() => setCustom((c) => [...c, h])}><HatIcon hat={h} size={22} /> + {h}</button>
               ))}
+              <button className="chip hatbtn blue" title="Blue pauses between hats to say what is covered and what to focus on next"
+                disabled={custom.length === 0 || custom[custom.length - 1] === "blue" || custom.length >= 8}
+                onClick={() => setCustom((c) => [...c, "blue"])}><HatIcon hat="blue" size={22} /> + blue checkpoint</button>
               <button onClick={() => setCustom((c) => c.slice(0, -1))} disabled={!custom.length}>Undo</button>
               <button onClick={() => setCustom([])} disabled={!custom.length}>Clear</button>
             </div>
             <div className="chips" aria-live="polite">
               {custom.length ? custom.map((h, n) => <HatChip key={n} hat={h} />)
-                : <span className="hint">Pick 1 to 8 steps. A hat may repeat.</span>}
+                : <span className="hint">Pick 1 to 8 steps. A hat may repeat. Blue checkpoints go between hats.</span>}
+              {blueProblem(custom) && <span className="hint" role="alert">{blueProblem(custom)}</span>}
             </div>
           </>
         )}

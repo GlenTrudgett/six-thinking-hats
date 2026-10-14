@@ -10,6 +10,18 @@ export function reportToMarkdown(r: Report): string {
     "## Framing\n" + r.framing_summary,
     "## What each hat said\n" + r.hat_summaries.map((h) => `- **${h.hat}**: ${h.summary}`).join("\n"),
     "## Conclusions\n" + list(r.conclusions),
+    ...(r.checkpoints?.length
+      ? [
+          "## Blue checkpoints\n" +
+            r.checkpoints
+              .map((c) => {
+                const cp = c.checkpoint;
+                const gaps = cp.gaps.length ? `\nGaps:\n${list(cp.gaps)}` : "";
+                return `**After ${c.after}**\nCovered:\n${list(cp.progress)}${gaps}\nNext focus: ${cp.next_focus}`;
+              })
+              .join("\n\n"),
+        ]
+      : []),
     "## Agreements\n" + list(r.agreements),
     "## Tensions\n" + list(r.tensions),
     "## Recommended next steps\n" + list(r.recommended_next_steps),

@@ -13,12 +13,13 @@ from langchain_core.runnables import RunnableConfig
 from six_hats.graph.resilience import DEFAULT_LIMITS, AllHatsFailedError, Limits, run_guarded
 from six_hats.graph.sequence import resolve_order, step_key
 from six_hats.graph.state import GraphState
-from six_hats.hats.base import brief_block, data_block, load_prompt, run_hat
+from six_hats.hats.base import brief_block, data_block, load_prompt, run_checkpoint, run_hat
 from six_hats.llm.structured import ainvoke_structured
 from six_hats.observability.logging import get_logger
+from six_hats.schemas.checkpoint import BlueCheckpoint, CheckpointRecord
 from six_hats.schemas.failures import FailureRecord
 from six_hats.schemas.framing import Framing
-from six_hats.schemas.hat_output import THINKING_HATS, HatOutput, ThinkingHatName
+from six_hats.schemas.hat_output import THINKING_HATS, HatOutput, SequenceStep, ThinkingHatName
 from six_hats.schemas.presets import PRESETS, describe_presets
 from six_hats.schemas.report import BlueCloseOutput, FinalReport, HatSummary
 from six_hats.security.input_validation import validate_request
@@ -128,19 +129,60 @@ def make_hat(hat: ThinkingHatName, resolve: ModelResolver, limits: Limits = DEFA
 
 
 def make_sequential(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> Node:
-    """Run the framing's sequence one hat at a time; each hat sees what came before."""
+    """Run the framing's sequence one step at a time; each hat sees what came before.
+
+    A "blue" step is a checkpoint: Blue summarises progress and tells the next hat where to focus.
+    It cannot change the sequence, and a failed checkpoint is recorded and skipped.
+    """
 
     async def sequential(state: GraphState, config: RunnableConfig) -> dict[str, Any]:
         framing = state["framing"]
         done: list[tuple[str, HatOutput]] = []
-        order: list[ThinkingHatName] = []
+        order: list[SequenceStep] = []
         failures: list[FailureRecord] = []
-        for hat in framing.sequence:
+        checkpoints: list[CheckpointRecord] = []
+        pending: BlueCheckpoint | None = None  # handed to the very next hat, then dropped
+        for step in framing.sequence:
             start = time.perf_counter()
-            key = step_key(hat, order)
-            order.append(hat)
+            key = step_key(step, order)
+            order.append(step)
+            if step == "blue":
+                if not done:  # nothing to report on yet (every earlier step failed)
+                    continue
+                checkpoint, failure = await run_guarded(
+                    lambda: run_checkpoint(
+                        resolve("blue_checkpoint"),
+                        state["question"],
+                        framing,
+                        list(done),
+                        config,
+                        limits.max_context_chars,
+                    ),
+                    limits=limits,
+                    node="blue_checkpoint",
+                    run_id=state["run_id"],
+                )
+                if checkpoint is None:
+                    if failure:
+                        failures.append(failure)
+                    continue
+                after = done[-1][1].hat
+                checkpoints.append(CheckpointRecord(after=after, checkpoint=checkpoint))
+                pending = checkpoint
+                _log.info(
+                    "node.completed",
+                    node="blue_checkpoint",
+                    after=after,
+                    step=len(order),
+                    run_id=state["run_id"],
+                    prompt_version=load_prompt("blue_checkpoint").version,
+                    duration_ms=_ms(start),
+                )
+                continue
+            hat: ThinkingHatName = step
+            note, pending = pending, None
             output, failure = await run_guarded(
-                lambda hat=hat: run_hat(  # type: ignore[misc]
+                lambda hat=hat, note=note: run_hat(  # type: ignore[misc]
                     hat,
                     resolve(hat),
                     state["question"],
@@ -148,6 +190,7 @@ def make_sequential(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> 
                     config,
                     earlier=list(done),
                     max_context_chars=limits.max_context_chars,
+                    checkpoint=note,
                 ),
                 limits=limits,
                 node="sequential",
@@ -168,7 +211,7 @@ def make_sequential(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> 
                 prompt_version=load_prompt(hat).version,
                 duration_ms=_ms(start),
             )
-        return {"outputs": dict(done), "failures": failures}
+        return {"outputs": dict(done), "failures": failures, "checkpoints": checkpoints}
 
     return sequential
 
@@ -211,14 +254,16 @@ def make_blue_close(resolve: ModelResolver, limits: Limits = DEFAULT_LIMITS) -> 
         hat_outputs = json.dumps(
             {h: o.model_dump(exclude={"hat"}) for h, o in outputs.items()}, indent=2
         )
-        user = "\n\n".join(
-            [
-                data_block("question", state["question"]),
-                brief_block(state["framing"]),
-                data_block("hat_outputs", hat_outputs),
-                data_block("missing_hats", ", ".join(missing) or "none"),
-            ]
-        )
+        parts = [
+            data_block("question", state["question"]),
+            brief_block(state["framing"]),
+            data_block("hat_outputs", hat_outputs),
+            data_block("missing_hats", ", ".join(missing) or "none"),
+        ]
+        if state.get("checkpoints"):
+            notes = json.dumps([c.model_dump() for c in state["checkpoints"]], indent=2)
+            parts.append(data_block("blue_checkpoints", notes))
+        user = "\n\n".join(parts)
         prompt = load_prompt("blue_close")
         closing, failure = await run_guarded(
             lambda: ainvoke_structured(
@@ -264,7 +309,9 @@ def _assemble_report(
             seen.add(summary.hat)
             unique.append(summary)
     failures = [*state.get("failures", []), *(extra_failures or [])]
-    versions = {name: load_prompt(name).version for name in _PROMPTS_USED}  # type: ignore[arg-type]
+    checkpoints = state.get("checkpoints", [])
+    used = (*_PROMPTS_USED, "blue_checkpoint") if checkpoints else _PROMPTS_USED
+    versions = {name: load_prompt(name).version for name in used}  # type: ignore[arg-type]
     return FinalReport(
         run_id=run_id,
         framing_summary=closing.framing_summary,
@@ -283,6 +330,7 @@ def _assemble_report(
             else None
         ),
         sequence=list(framing.sequence) if framing is not None and sequential else [],
+        checkpoints=checkpoints if sequential else [],
         degraded=bool(missing or failures),
         failures=failures,
         prompt_versions=versions,
