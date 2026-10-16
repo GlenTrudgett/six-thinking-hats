@@ -109,6 +109,7 @@ def create_app(
                 override = _override(req)
                 model = create_model(settings.llm)
                 r = settings.run
+                prices = settings.prices()
                 report = await run_workflow(
                     req.question,
                     lambda _node: model,
@@ -124,9 +125,9 @@ def create_app(
                     on_progress=lambda node, msg: queue.put_nowait(
                         ("progress", {"node": node, "message": msg})
                     ),
-                    price_input_per_mtok=r.price_input_per_mtok,
-                    price_output_per_mtok=r.price_output_per_mtok,
-                    price_currency=r.price_currency,
+                    price_input_per_mtok=prices[0],
+                    price_output_per_mtok=prices[1],
+                    price_currency=prices[2],
                 )
                 queue.put_nowait(("report", report.model_dump(mode="json")))
             except (InputError, ValidationError) as exc:

@@ -307,19 +307,12 @@ def test_structure_checks_catch_mode_preset_and_degraded_runs():
     }
 
 
-def test_prices_apply_only_to_the_provider_they_describe():
-    from types import SimpleNamespace
+def test_prices_for_follows_settings_prices():
+    from six_hats.config.settings import Settings
 
-    run = SimpleNamespace(
-        price_input_per_mtok=2.0, price_output_per_mtok=10.0, price_currency="USD"
-    )
-    claude = SimpleNamespace(run=run, llm=SimpleNamespace(provider="anthropic"))
-    local = SimpleNamespace(run=run, llm=SimpleNamespace(provider="local"))
-    unpriced = SimpleNamespace(
-        run=SimpleNamespace(
-            price_input_per_mtok=None, price_output_per_mtok=None, price_currency=None
-        ),
-        llm=SimpleNamespace(provider="anthropic"),
-    )
+    priced = {"price_input_per_mtok": 2.0, "price_output_per_mtok": 10.0, "price_currency": "USD"}
+    claude = Settings(_env_file=None, llm={"provider": "anthropic"}, run=priced)
+    local = Settings(_env_file=None, llm={"provider": "local"}, run=priced)
+    unpriced = Settings(_env_file=None, llm={"provider": "anthropic"})
     assert prices_for(claude) == Prices(input_per_mtok=2.0, output_per_mtok=10.0, currency="USD")
     assert prices_for(local) == Prices() and prices_for(unpriced) == Prices()

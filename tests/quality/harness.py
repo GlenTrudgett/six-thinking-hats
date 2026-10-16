@@ -66,14 +66,10 @@ def prices_for(settings: Any) -> Prices:
 
     Prices in `.env` are Claude's, so a local llama.cpp run is free and must not be given a cost
     (it would also eat the budget)."""
-    run = settings.run
-    if settings.llm.provider != "anthropic" or not run.price_currency:
+    input_price, output_price, currency = settings.prices()
+    if not currency:
         return Prices()
-    return Prices(
-        input_per_mtok=run.price_input_per_mtok,
-        output_per_mtok=run.price_output_per_mtok,
-        currency=run.price_currency,
-    )
+    return Prices(input_per_mtok=input_price, output_per_mtok=output_price, currency=currency)
 
 
 def load_questions(limit: int | None = None) -> list[Question]:

@@ -48,3 +48,20 @@ def test_api_key_with_inner_whitespace_is_rejected_without_echoing_it():
     with pytest.raises(ValidationError) as exc:
         LLMSettings(anthropic_api_key="sk-ant-abc 123")
     assert "abc 123" not in str(exc.value)
+
+
+@pytest.mark.parametrize(
+    ("provider", "expected"),
+    [
+        ("anthropic", (2.0, 10.0, "USD")),
+        ("local", (None, None, None)),
+        ("demo", (None, None, None)),
+    ],
+)
+def test_prices_only_for_anthropic(provider, expected):
+    s = Settings(
+        _env_file=None,
+        llm={"provider": provider},
+        run={"price_input_per_mtok": 2.0, "price_output_per_mtok": 10.0, "price_currency": "usd"},
+    )
+    assert s.prices() == expected
