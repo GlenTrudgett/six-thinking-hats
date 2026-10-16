@@ -3,6 +3,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Changed
+- Red hat prompt v2 and yellow hat prompt v2, tuned after the judged Claude run (red scored 3.8 on
+  specificity and novelty, yellow 3.5 on novelty): red feelings must be about something concrete in the
+  question and must not invent figures; yellow must go beyond the benefits the question already names,
+  say who gains, and add what earlier hats have not said.
+
 ### Fixed
 - Quality checks on a local model: the Claude prices in `.env` are no longer applied to a llama.cpp run
   (it reported a made-up USD cost and would have counted it against `SIXHATS_QUALITY_BUDGET`; a budget on
