@@ -1,0 +1,41 @@
+# The web interface in containers: browser -> web (Next.js, port 3000) -> api (Python, internal only).
+#   docker compose up --build        then open http://localhost:3000
+# With no .env this uses the built-in demo model (canned answers, no key, no cost). To use a real
+# model, copy .env.example to .env and set SIXHATS_LLM__ANTHROPIC_API_KEY.
+name: sixhats
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    # Optional .env (never committed): model key, model name, prices, timeouts. The provider falls back
+    # to the demo model when .env does not set one.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SIXHATS_LLM__PROVIDER: ${SIXHATS_LLM__PROVIDER:-demo}
+    # No "ports": the API has no login and is reachable only by the web container on the compose network.
+    expose: ["8000"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: web
+      args:
+        SIXHATS_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    # Published on this computer only. Set SIXHATS_WEB_BIND=0.0.0.0 to share it, but the interface has
+    # no login either, so anyone who can reach it can spend your model tokens.
+    ports:
+      - "${SIXHATS_WEB_BIND:-127.0.0.1}:${SIXHATS_WEB_PORT:-3000}:3000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped

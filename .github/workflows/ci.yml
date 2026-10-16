@@ -26,6 +26,29 @@ jobs:
         run: |
           docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges sixhats:ci version
           test "$(docker run --rm --entrypoint id sixhats:ci -u)" = "10001"
+  compose:
+    # The web interface in containers (compose.yaml), using the built-in demo model: no key, no cost.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker compose build
+      - name: Starts healthy and serves a whole run through the web container
+        run: |
+          docker compose up -d --wait
+          curl -sf http://127.0.0.1:3000/api/health
+          curl -sfN -X POST http://127.0.0.1:3000/api/run -H 'content-type: application/json' \
+            -d '{"question":"Should we adopt a four-day week?"}' | grep -q '^event: report'
+      - name: The API is not published, and neither container runs as root
+        run: |
+          ! curl -s -m 3 http://127.0.0.1:8000/api/health
+          test "$(docker compose exec -T api id -u)" = "10001"
+          test "$(docker compose exec -T web id -u)" != "0"
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Clean up
+        if: always()
+        run: docker compose down -v
   web:
     runs-on: ubuntu-latest
     defaults:

@@ -3,6 +3,16 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Added
+- Docker support for the web interface: `docker compose up --build` starts the Next.js interface and the
+  Python API as two containers (`docker/api.Dockerfile`, `web/Dockerfile`, `compose.yaml`) and the app
+  opens on http://localhost:3000. With no `.env` it uses the built-in demo model, so it works with no key
+  and no cost; with a `.env` it uses your real model (the key stays in the API container). Only the web
+  container publishes a port, on this computer only by default; the API (which has no login) is reachable
+  only over the compose network. Both containers are read-only, non-root and drop all capabilities.
+  `make docker-up` and `make docker-down`. CI builds both images and runs a whole demo question through
+  them. The web build now uses Next.js `output: "standalone"`.
+
 ## [1.2.0] - 2026-10-16
 
 ### Added

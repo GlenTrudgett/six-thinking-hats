@@ -138,6 +138,28 @@ as Markdown. The model key stays in the Python API's `.env`; the browser never s
 (`serve --host` warns if you do). The UI forwards `/api` to `http://127.0.0.1:8000`; set
 `SIXHATS_API_URL` for the Next server to point elsewhere.
 
+### Web interface in containers
+```
+docker compose up --build           # then open http://localhost:3000   (or: make docker-up)
+docker compose down                 # stop                               (or: make docker-down)
+```
+Two containers: `web` (the Next.js interface, the only thing published, on this computer's port 3000) and
+`api` (the Python API, reachable only by `web` over the compose network, with **no published port**). With
+no `.env` the API uses the built-in **demo model**: canned answers, no key, no cost, so you can try the
+whole app straight away. For a real model, copy `.env.example` to `.env` and set
+`SIXHATS_LLM__ANTHROPIC_API_KEY` (prices, timeouts and the other settings in `.env` are passed to the API);
+the key stays inside the `api` container and never reaches the browser. Both containers are read-only, run
+as non-root users and drop all capabilities.
+- Change the port with `SIXHATS_WEB_PORT=8080`. To share the interface on your network set
+  `SIXHATS_WEB_BIND=0.0.0.0`; it has no login, so only do that on a network you trust.
+- A llama.cpp server on your computer: in `.env` set `SIXHATS_LLM__PROVIDER=local`,
+  `SIXHATS_LLM__LOCAL__BASE_URL=http://host.docker.internal:8080/v1` and
+  `SIXHATS_LLM__LOCAL__ALLOW_NON_LOOPBACK=true`, and add `extra_hosts: ["host.docker.internal:host-gateway"]`
+  to the `api` service (Docker Desktop on Mac already resolves that name).
+- The address of the API is baked into the `web` image when it is built (Next.js reads it at build time), so
+  if you rename the service or its port, change `SIXHATS_API_URL` under `build.args` and rebuild.
+- CI builds both images and runs a whole demo question through them on every pull request.
+
 ## Troubleshooting
 If the web UI shows "Error in input stream" or "connection lost" part-way through a run, the API stopped or
 the connection dropped: check the terminal running `sixhats serve` for errors and try again. (Runs over
