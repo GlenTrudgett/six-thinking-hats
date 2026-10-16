@@ -3,25 +3,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
-### Changed
-- Red hat prompt v2 and yellow hat prompt v2, tuned after the judged Claude run (red scored 3.8 on
-  specificity and novelty, yellow 3.5 on novelty): red feelings must be about something concrete in the
-  question and must not invent figures; yellow must go beyond the benefits the question already names,
-  say who gains, and add what earlier hats have not said.
-
-### Fixed
-- The CLI, API and web report no longer show an "est. cost" for a local or demo model, even when Claude
-  prices are set in `.env` (the prices describe Anthropic's API; a local model is free).
-- Quality checks on a local model: the Claude prices in `.env` are no longer applied to a llama.cpp run
-  (it reported a made-up USD cost and would have counted it against `SIXHATS_QUALITY_BUDGET`; a budget on
-  a local run now fails with an explanation). `make quality-local` sets a 300 s node timeout and a 900 s
-  per-question limit (override with `NODE_TIMEOUT=` and `MAX_SECONDS=`), because an 8B model on a laptop
-  needs minutes where Claude needs seconds.
-
-### Fixed
-- Quality checks: the red-hat "no statistics" check no longer fails when the hat quotes a figure the
-  question itself contained (found in the first real Claude run: "60 per cent"). The injection canary
-  warning now says whether the marker appeared in a hat's own points or only in the report text.
+## [1.2.0] - 2026-10-16
 
 ### Added
 - Quality checks, layers 2 and 3 (opt-in, real model; `tests/quality/`): ten fixed questions
@@ -48,7 +30,23 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
   Reports gain `checkpoints` and a "Blue checkpoints" section. New prompt `blue_checkpoint` v1.
 
 ### Changed
+- Red hat prompt v2 and yellow hat prompt v2, tuned after the judged Claude run (red scored 3.8 on
+  specificity and novelty, yellow 3.5 on novelty): red feelings must be about something concrete in the
+  question and must not invent figures; yellow must go beyond the benefits the question already names,
+  say who gains, and add what earlier hats have not said.
 - Blue-Close prompt is v3: it may use the checkpoint notes to describe how the thinking progressed.
+
+### Fixed
+- The CLI, API and web report no longer show an "est. cost" for a local or demo model, even when Claude
+  prices are set in `.env` (the prices describe Anthropic's API; a local model is free).
+- Quality checks on a local model: the Claude prices in `.env` are no longer applied to a llama.cpp run
+  (it reported a made-up USD cost and would have counted it against `SIXHATS_QUALITY_BUDGET`; a budget on
+  a local run now fails with an explanation). `make quality-local` sets a 300 s node timeout and a 900 s
+  per-question limit (override with `NODE_TIMEOUT=` and `MAX_SECONDS=`), because an 8B model on a laptop
+  needs minutes where Claude needs seconds.
+- Quality checks: the red-hat "no statistics" check no longer fails when the hat quotes a figure the
+  question itself contained (found in the first real Claude run: "60 per cent"). The injection canary
+  warning now says whether the marker appeared in a hat's own points or only in the report text.
 
 ## [1.1.0] - 2026-10-13
 Presets, forced parallel mode, progress and cost reporting, and a web interface.
