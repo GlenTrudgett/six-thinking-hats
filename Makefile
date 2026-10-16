@@ -1,6 +1,6 @@
 # Everyday commands for working on this project without Docker. Run `make` to see them.
 .DEFAULT_GOAL := help
-.PHONY: help setup check fix test test-fast demo ui api web dev live-claude live-local quality quality-judge quality-local quality-compare clean
+.PHONY: help setup check fix test test-fast demo ui api web dev docker-up docker-down live-claude live-local quality quality-judge quality-local quality-compare clean
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-12s %s\n", $$1, $$2}'
@@ -44,6 +44,12 @@ api-demo:
 
 dev:  ## API with your real model plus the UI, together (Ctrl-C stops both)
 	@$(MAKE) -j2 api ui
+
+docker-up:  ## Web interface in containers on http://localhost:3000 (demo model unless .env sets a provider)
+	docker compose up --build
+
+docker-down:  ## Stop and remove the web interface containers
+	docker compose down
 
 live-claude:  ## Live tests against Claude (needs SIXHATS_LLM__ANTHROPIC_API_KEY in .env or your shell)
 	SIXHATS_LIVE=1 SIXHATS_LLM__PROVIDER=anthropic uv run pytest tests/live -m live --no-cov -s
