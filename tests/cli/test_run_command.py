@@ -124,3 +124,15 @@ def test_sequence_accepts_a_blue_checkpoint_and_rejects_a_misplaced_one():
     for bad in ("blue,white", "white,blue", "white,blue,blue,black"):
         with pytest.raises(InputError, match="--sequence"):
             _build_override(None, bad)
+
+
+@pytest.mark.parametrize(("provider", "shows_cost"), [("anthropic", True), ("local", False)])
+def test_cost_shown_only_for_anthropic(monkeypatch, provider, shows_cost):
+    _use(monkeypatch, make_hats_fake())
+    monkeypatch.setenv("SIXHATS_LLM__PROVIDER", provider)
+    monkeypatch.setenv("SIXHATS_RUN__PRICE_INPUT_PER_MTOK", "2")
+    monkeypatch.setenv("SIXHATS_RUN__PRICE_OUTPUT_PER_MTOK", "10")
+    monkeypatch.setenv("SIXHATS_RUN__PRICE_CURRENCY", "USD")
+    result = runner.invoke(cli.app, ["run", "Should we do X?"])
+    assert result.exit_code == 0, result.output
+    assert ("est. cost" in result.stdout + result.stderr) is shows_cost

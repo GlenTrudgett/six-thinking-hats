@@ -4,6 +4,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 ## [Unreleased]
 
 ### Fixed
+- The CLI, API and web report no longer show an "est. cost" for a local or demo model, even when Claude
+  prices are set in `.env` (the prices describe Anthropic's API; a local model is free).
 - Quality checks on a local model: the Claude prices in `.env` are no longer applied to a llama.cpp run
   (it reported a made-up USD cost and would have counted it against `SIXHATS_QUALITY_BUDGET`; a budget on
   a local run now fails with an explanation). `make quality-local` sets a 300 s node timeout and a 900 s

@@ -239,6 +239,7 @@ def run(
         if output is not None and output.exists() and not force:
             raise InputError(f"{output} exists; use --force to overwrite")
         model = create_model(settings.llm)
+        prices = settings.prices()
         report = asyncio.run(
             run_workflow(
                 text,
@@ -247,9 +248,9 @@ def run(
                 max_question_chars=settings.run.max_input_chars,
                 override=override,
                 on_progress=None if quiet else _progress,
-                price_input_per_mtok=settings.run.price_input_per_mtok,
-                price_output_per_mtok=settings.run.price_output_per_mtok,
-                price_currency=settings.run.price_currency,
+                price_input_per_mtok=prices[0],
+                price_output_per_mtok=prices[1],
+                price_currency=prices[2],
                 limits=Limits(
                     node_timeout_seconds=settings.run.node_timeout_seconds,
                     node_retries=settings.run.node_retries,

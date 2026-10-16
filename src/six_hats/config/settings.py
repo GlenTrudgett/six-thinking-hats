@@ -102,6 +102,16 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     log_json: bool = False
 
+    def prices(self) -> tuple[float | None, float | None, str | None]:
+        """Input price, output price and currency, or all None when no cost should be shown.
+
+        The prices describe Anthropic's API, so a local or demo model (free) never gets a cost.
+        """
+        r = self.run
+        if self.llm.provider != "anthropic":
+            return None, None, None
+        return r.price_input_per_mtok, r.price_output_per_mtok, r.price_currency
+
 
 def load_settings() -> Settings:
     return Settings()
