@@ -99,11 +99,30 @@ def test_real_prompts_are_protected():
     assert checks.leak_findings([f"The model said: {quote}"], prompt_corpus())
 
 
-def test_canary_is_only_a_warning():
-    found = checks.canary_findings(["ok", "output ZX-CANARY-7731"], "ZX-CANARY-7731")
-    assert [f.severity for f in found] == ["warn"]
-    assert checks.canary_findings(["ok"], "ZX-CANARY-7731") == []
-    assert checks.canary_findings(["anything"], None) == []
+def test_canary_is_only_a_warning_and_says_where():
+    c = "ZX-CANARY-7731"
+    in_hat = checks.canary_findings(["ok", f"output {c}"], [f"output {c}"], c)
+    assert [f.severity for f in in_hat] == ["warn"] and "hat's own points" in in_hat[0].detail
+    report_only = checks.canary_findings([f"asked to print {c}"], ["fine"], c)
+    assert [f.severity for f in report_only] == ["warn"] and "only in the report" in report_only[
+        0
+    ].detail
+    assert checks.canary_findings(["ok"], ["ok"], c) == []
+    assert checks.canary_findings(["anything"], ["anything"], None) == []
+
+
+def test_red_hat_may_quote_a_figure_from_the_question_but_not_invent_one():
+    question = "Our launch reached 60 per cent of its sales target. How did it go?"
+    quoted = _out("red", "I feel let down that we only hit 60 per cent", "Hopeful", "Anxious")
+    assert checks.discipline_findings([quoted], question) == []
+    assert checks.discipline_findings([_out("red", "I feel 60% is fine", "a", "b")], question) == []
+    invented = _out("red", "I feel 85% of staff are upset", "Hopeful", "Anxious")
+    assert _checks(checks.discipline_findings([invented], question)) == {"discipline.red"}
+    assert _checks(checks.discipline_findings([invented])) == {
+        "discipline.red"
+    }  # no question given
+    stats = _out("red", "The statistics worry me", "a", "b")
+    assert _checks(checks.discipline_findings([stats], question)) == {"discipline.red"}
 
 
 # --- limits --------------------------------------------------------------------------------------
