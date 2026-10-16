@@ -4,6 +4,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 ## [Unreleased]
 
 ### Fixed
+- Quality checks on a local model: the Claude prices in `.env` are no longer applied to a llama.cpp run
+  (it reported a made-up USD cost and would have counted it against `SIXHATS_QUALITY_BUDGET`; a budget on
+  a local run now fails with an explanation). `make quality-local` sets a 300 s node timeout and a 900 s
+  per-question limit (override with `NODE_TIMEOUT=` and `MAX_SECONDS=`), because an 8B model on a laptop
+  needs minutes where Claude needs seconds.
+
+### Fixed
 - Quality checks: the red-hat "no statistics" check no longer fails when the hat quotes a figure the
   question itself contained (found in the first real Claude run: "60 per cent"). The injection canary
   warning now says whether the marker appeared in a hat's own points or only in the report text.

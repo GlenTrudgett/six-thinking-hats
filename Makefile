@@ -63,8 +63,10 @@ quality-judge:  ## As 'quality', plus judge scores (one extra model call per que
 	$(if $(LIMIT),SIXHATS_QUALITY_LIMIT=$(LIMIT),) $(if $(BUDGET),SIXHATS_QUALITY_BUDGET=$(BUDGET),) \
 	uv run pytest tests/quality -m quality --no-cov -s
 
-quality-local:  ## Behavioural checks on llama.cpp (free): make quality-local MODEL=<name> [URL=...]
+quality-local:  ## llama.cpp (free, slow): make quality-local MODEL=<name> [URL=...] [LIMIT=3] [NODE_TIMEOUT=300] [MAX_SECONDS=900]
 	SIXHATS_QUALITY=1 SIXHATS_LLM__PROVIDER=local SIXHATS_LLM__MODEL=$(MODEL) \
+	SIXHATS_RUN__NODE_TIMEOUT_SECONDS=$(or $(NODE_TIMEOUT),300) \
+	SIXHATS_QUALITY_MAX_SECONDS=$(or $(MAX_SECONDS),900) \
 	SIXHATS_LLM__LOCAL__BASE_URL=$(or $(URL),http://127.0.0.1:8080/v1) \
 	$(if $(LIMIT),SIXHATS_QUALITY_LIMIT=$(LIMIT),) \
 	uv run pytest tests/quality -m quality --no-cov -s
