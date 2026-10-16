@@ -3,6 +3,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-16
+
 ### Added
 - Docker support for the web interface: `docker compose up --build` starts the Next.js interface and the
   Python API as two containers (`docker/api.Dockerfile`, `web/Dockerfile`, `compose.yaml`) and the app
