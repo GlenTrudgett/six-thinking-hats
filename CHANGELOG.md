@@ -3,6 +3,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Changed
+- Red hat prompt v2 and yellow hat prompt v2, tuned after the judged Claude run (red scored 3.8 on
+  specificity and novelty, yellow 3.5 on novelty): red feelings must be about something concrete in the
+  question and must not invent figures; yellow must go beyond the benefits the question already names,
+  say who gains, and add what earlier hats have not said.
+
 ### Fixed
 - The CLI, API and web report no longer show an "est. cost" for a local or demo model, even when Claude
   prices are set in `.env` (the prices describe Anthropic's API; a local model is free).

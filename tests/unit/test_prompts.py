@@ -25,7 +25,10 @@ RULES = {
 @pytest.mark.parametrize("name", ALL)
 def test_prompt_has_version_and_rules(name):
     p = load_prompt(name)
-    assert p.version == {"blue_open": "3", "blue_close": "3"}.get(name, "1") and p.name == name
+    assert (
+        p.version == {"blue_open": "3", "blue_close": "3", "red": "2", "yellow": "2"}.get(name, "1")
+        and p.name == name
+    )
     for rule in RULES[name]:
         assert rule in p.text, f"{name} prompt is missing: {rule}"
 
