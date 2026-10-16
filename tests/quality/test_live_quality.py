@@ -27,10 +27,10 @@ from six_hats.graph.resilience import Limits
 from six_hats.graph.runner import estimate_cost
 from six_hats.llm.factory import create_model
 from tests.quality.harness import (
-    Prices,
     Recorder,
     Thresholds,
     load_questions,
+    prices_for,
     run_question,
 )
 from tests.quality.judge import judge_question
@@ -65,11 +65,10 @@ def settings():
 
 @pytest.fixture(scope="module")
 def recorder(settings):
-    run = settings.run
     rec = Recorder(
         provider=settings.llm.provider,
         model=settings.llm.model,
-        currency=run.price_currency,
+        currency=prices_for(settings).currency,
         budget=_env_float("SIXHATS_QUALITY_BUDGET"),
         judge_model=(
             os.environ.get("SIXHATS_QUALITY_JUDGE_MODEL", settings.llm.model)
@@ -77,8 +76,11 @@ def recorder(settings):
             else None
         ),
     )
-    if rec.budget is not None and not run.price_currency:
-        pytest.fail("SIXHATS_QUALITY_BUDGET needs the three price settings (see .env.example)")
+    if rec.budget is not None and rec.currency is None:
+        pytest.fail(
+            "SIXHATS_QUALITY_BUDGET needs the three price settings (see .env.example) and an "
+            "Anthropic run: a local model has no cost to cap"
+        )
     yield rec
     path = rec.write()
     if path:
@@ -102,11 +104,7 @@ async def test_question(question, settings, recorder):
             retry_backoff_seconds=run.retry_backoff_seconds,
             max_context_chars=run.max_context_chars,
         ),
-        prices=Prices(
-            input_per_mtok=run.price_input_per_mtok,
-            output_per_mtok=run.price_output_per_mtok,
-            currency=run.price_currency,
-        ),
+        prices=prices_for(settings),
         thresholds=Thresholds(
             max_seconds=_env_float("SIXHATS_QUALITY_MAX_SECONDS") or 240.0,
             max_tokens=int(os.environ.get("SIXHATS_QUALITY_MAX_TOKENS", "80000")),
@@ -127,7 +125,7 @@ async def test_question(question, settings, recorder):
         for meta in usage.usage_metadata.values():
             totals["input_tokens"] += int(dict(meta).get("input_tokens", 0))
             totals["output_tokens"] += int(dict(meta).get("output_tokens", 0))
-        if run.price_currency:
+        if prices_for(settings).currency:
             judge_cost = estimate_cost(totals, run.price_input_per_mtok, run.price_output_per_mtok)
     recorder.add(result, extra_cost=judge_cost)
 

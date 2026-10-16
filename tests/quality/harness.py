@@ -61,6 +61,21 @@ class Prices(BaseModel):
     currency: str | None = None
 
 
+def prices_for(settings: Any) -> Prices:
+    """The configured prices, but only for the provider they describe.
+
+    Prices in `.env` are Claude's, so a local llama.cpp run is free and must not be given a cost
+    (it would also eat the budget)."""
+    run = settings.run
+    if settings.llm.provider != "anthropic" or not run.price_currency:
+        return Prices()
+    return Prices(
+        input_per_mtok=run.price_input_per_mtok,
+        output_per_mtok=run.price_output_per_mtok,
+        currency=run.price_currency,
+    )
+
+
 def load_questions(limit: int | None = None) -> list[Question]:
     data = yaml.safe_load(QUESTIONS_FILE.read_text(encoding="utf-8"))
     questions = [Question.model_validate(item) for item in data]
@@ -267,6 +282,7 @@ __all__ = [
     "Recorder",
     "Thresholds",
     "load_questions",
+    "prices_for",
     "prompt_corpus",
     "run_question",
 ]
