@@ -4,7 +4,7 @@ Edward de Bono's *Six Thinking Hats* (ISBN 0-14-029666-2) as a LangGraph multi-a
 An administrator frames the request, runs the six hats, and collates a final report.
 LLM-agnostic via LangChain (Anthropic and local OpenAI-compatible servers supported).
 
-**Status:** version 1.2.0: parallel and sequential modes, presets, Blue checkpoints, resilience, progress and cost reporting, quality checks, a web interface and a container. See CHANGELOG.md.
+**Status:** version 1.3.0: parallel and sequential modes, presets, Blue checkpoints, resilience, progress and cost reporting, quality checks, a web interface, and containers for both the CLI and the web interface. See CHANGELOG.md.
 
 ## Develop (no Docker needed)
 Run `make` to list the shortcuts:
