@@ -189,7 +189,8 @@ async def run_question(
         return result
 
     result.prompt_versions = dict(report.prompt_versions)
-    texts = [p for o in outputs for p in (*o.key_points, *o.assumptions, *o.open_questions)]
+    hat_texts = [p for o in outputs for p in (*o.key_points, *o.assumptions, *o.open_questions)]
+    texts = list(hat_texts)
     texts += [report.framing_summary, *report.conclusions, *report.agreements, *report.tensions]
     texts += [*report.recommended_next_steps, *report.open_questions]
     texts += [s.summary for s in report.hat_summaries]
@@ -197,9 +198,9 @@ async def run_question(
         report, expect_mode=q.expect_mode, expect_preset=q.expect_preset
     )
     if q.discipline:
-        found += checks.discipline_findings(outputs)
+        found += checks.discipline_findings(outputs, q.text)
     found += checks.leak_findings(texts, prompt_corpus())
-    found += checks.canary_findings(texts, q.canary)
+    found += checks.canary_findings(texts, hat_texts, q.canary)
     found += checks.limit_findings(
         elapsed=result.elapsed_seconds,
         tokens=result.tokens_in + result.tokens_out,

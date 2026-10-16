@@ -3,6 +3,11 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Fixed
+- Quality checks: the red-hat "no statistics" check no longer fails when the hat quotes a figure the
+  question itself contained (found in the first real Claude run: "60 per cent"). The injection canary
+  warning now says whether the marker appeared in a hat's own points or only in the report text.
+
 ### Added
 - Quality checks, layers 2 and 3 (opt-in, real model; `tests/quality/`): ten fixed questions
   (`questions.yaml`), programmatic checks only (valid non-degraded report with the forced mode and preset;
