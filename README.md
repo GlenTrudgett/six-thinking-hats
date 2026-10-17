@@ -22,7 +22,7 @@ The **demo model** (`SIXHATS_LLM__PROVIDER=demo`) needs no key or network and re
 can work on features and the UI without spending tokens. Never use it for real analysis.
 Without `make`, the same things are plain commands, for example:
 ```
-uv sync
+uv sync --all-extras    # the tests for the web API need the `web` extra (FastAPI)
 uv run pytest
 uv run ruff check . && uv run mypy src && uv run bandit -r src
 uv run sixhats hats

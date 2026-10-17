@@ -3,6 +3,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Fixed
+- README: the plain-commands development example now uses `uv sync --all-extras`; without the `web` extra
+  the web API tests cannot import FastAPI and `pytest` stops at collection.
+
 ### Removed
 - The nightly workflow (`.github/workflows/nightly.yml`). Its full test run and container build already run
   on every pull request, `pip-audit` runs weekly in the Security workflow, and its optional live-model and
