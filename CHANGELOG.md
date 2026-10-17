@@ -4,15 +4,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 ## [Unreleased]
 
 ### Fixed
+- The nightly workflow installs all extras (`uv sync --frozen --all-extras`), as CI does. Without the `web` extra
+  the full test run stopped at collection (`No module named 'fastapi'`) and the nightly came back red.
 - README: the plain-commands development example now uses `uv sync --all-extras`; without the `web` extra
   the web API tests cannot import FastAPI and `pytest` stops at collection.
-
-### Removed
-- The nightly workflow (`.github/workflows/nightly.yml`). Its full test run and container build already run
-  on every pull request, `pip-audit` runs weekly in the Security workflow, and its optional live-model and
-  quality jobs were off by default. Real-model checks are now run only by hand (`make quality`,
-  `make live-claude`). The repository variables `SIXHATS_NIGHTLY_LIVE` and `SIXHATS_NIGHTLY_QUALITY` are no
-  longer used and can be deleted.
 
 ## [1.3.0] - 2026-10-16
 
