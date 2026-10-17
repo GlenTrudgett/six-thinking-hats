@@ -187,9 +187,9 @@ docker run --rm --read-only --cap-drop ALL --add-host=host.docker.internal:host-
   -e SIXHATS_LLM__LOCAL__BASE_URL=http://host.docker.internal:8080/v1 \
   -e SIXHATS_LLM__LOCAL__ALLOW_NON_LOOPBACK=true sixhats run "..."
 ```
-A nightly workflow rebuilds the image and runs the full suite and `pip-audit`. To also run the live tests
-nightly, add an `ANTHROPIC_API_KEY` repository secret and set the repository variable
-`SIXHATS_NIGHTLY_LIVE` to `true`.
+CI builds the image on every pull request, and the Security workflow runs `pip-audit` weekly. The live
+tests and quality checks run only when you run them yourself (see below); nothing calls a real model
+automatically.
 
 ## Check against a real model (live tests)
 The normal test suite runs offline with fake models. To check a real model, opt in explicitly:
@@ -230,11 +230,7 @@ make quality-compare FILES="quality-results/a.json quality-results/b.json"
 `BUDGET` needs the three price settings (see `.env.example`) and uses their currency. Results are written
 to `quality-results/<time>-<provider>-<model>.json` (not committed): every hat's points, findings, tokens,
 time, cost and prompt versions. Set `SIXHATS_QUALITY_JUDGE_MODEL` to judge with a different model than the
-one under test. The nightly workflow runs the same job when the repository variable
-`SIXHATS_NIGHTLY_QUALITY` is `true` (it uses `ANTHROPIC_API_KEY`, and the optional variables
-`SIXHATS_QUALITY_LIMIT`, `SIXHATS_QUALITY_BUDGET`, `SIXHATS_QUALITY_JUDGE` and
-`SIXHATS_PRICE_INPUT_PER_MTOK` / `SIXHATS_PRICE_OUTPUT_PER_MTOK` / `SIXHATS_PRICE_CURRENCY`) and
-uploads the results file. llama.cpp is not part of the nightly: the CI runner cannot reach your machine.
+one under test. These checks are run by hand; there is no scheduled run.
 
 Structured output tries the provider's native schema support first, then falls back to a JSON-mode
 prompt with parsing and validation, so models without schema or tool support still work.

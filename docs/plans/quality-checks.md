@@ -12,7 +12,7 @@ Already largely in place (fake-model graph tests, schema limits, exit codes). Ad
   the coloured list, every non-skipped hat appears once per step key, `degraded` iff `failures` is non-empty.
 - **Golden JSON schema**: snapshot of `FinalReport.model_json_schema()` so changes to the report are deliberate.
 
-## Layer 2: behavioural checks on a real model (nightly, opt-in, small budget)
+## Layer 2: behavioural checks on a real model (run by hand, opt-in, small budget)
 A fixed set of ~10 questions (decision, idea, problem, review, vague, very short, long, non-English,
 injection attempt, emotional topic). For each, programmatic checks only:
 - Valid report; no failures; mode and preset as expected for the forced options.
@@ -31,12 +31,11 @@ versions or models, never as a pass/fail gate by itself, because judge models dr
 ## Where it lives
 - `tests/quality/` with marker `quality`, skipped unless `SIXHATS_QUALITY=1`.
 - Fixed questions in `tests/quality/questions.yaml`; results in `quality-results/<date>.json` (not committed).
-- Nightly workflow: extend the optional live job with the quality job, gated on the same variable and secret.
+- Run by hand with `make quality` (a nightly workflow was tried and removed: nothing should spend money unattended).
 
 ## Order of work
 1. Layer 1 additions (one PR). 2. Question set and hat-discipline checks (one PR). 3. Injection and limits.
 4. Judge scoring, only after cost and token reporting exists, so each run reports what it spent.
 
 ## Decisions needed from you
-- Monthly budget for nightly live checks (drives question count).
-- Whether llama.cpp runs are part of the nightly (the CI runner cannot reach your laptop's server).
+- Decided: no scheduled runs, so no monthly budget is needed; use `BUDGET=` on each manual run.
