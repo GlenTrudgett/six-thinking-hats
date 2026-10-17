@@ -3,6 +3,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Removed
+- The nightly workflow (`.github/workflows/nightly.yml`). Its full test run and container build already run
+  on every pull request, `pip-audit` runs weekly in the Security workflow, and its optional live-model and
+  quality jobs were off by default. Real-model checks are now run only by hand (`make quality`,
+  `make live-claude`). The repository variables `SIXHATS_NIGHTLY_LIVE` and `SIXHATS_NIGHTLY_QUALITY` are no
+  longer used and can be deleted.
+
 ## [1.3.0] - 2026-10-16
 
 ### Added
