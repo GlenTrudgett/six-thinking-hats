@@ -6,6 +6,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 ### Fixed
 - The nightly workflow installs all extras (`uv sync --frozen --all-extras`), as CI does. Without the `web` extra
   the full test run stopped at collection (`No module named 'fastapi'`) and the nightly came back red.
+- README: the plain-commands development example now uses `uv sync --all-extras`; without the `web` extra
+  the web API tests cannot import FastAPI and `pytest` stops at collection.
 
 ## [1.3.0] - 2026-10-16
 
