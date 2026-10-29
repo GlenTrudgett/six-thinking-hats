@@ -3,6 +3,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Security
+- Web interface: Next.js 16.4.0 → 16.4.3, which fixes a critical remote-code-execution advisory in the image
+  optimisation API (GHSA-2464-fhr4-w9xw), a Server Actions denial of service (GHSA-p3m5-59mp-jv5r) and an
+  RCE in `use cache` (GHSA-673q-mjm6-r5xr). This interface uses none of those features, but the audit step
+  fails on them. Dependabot now also watches `web/` (npm), so this arrives as a pull request next time.
+
 ### Fixed
 - The nightly workflow installs all extras (`uv sync --frozen --all-extras`), as CI does. Without the `web` extra
   the full test run stopped at collection (`No module named 'fastapi'`) and the nightly came back red.
