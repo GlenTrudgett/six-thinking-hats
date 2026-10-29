@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-web = ["fastapi>=0.143.2", "uvicorn>=0.30"]
+web = ["fastapi>=0.162.0", "uvicorn>=0.30"]
 
 [project.scripts]
 sixhats = "six_hats.interfaces.cli:app"
