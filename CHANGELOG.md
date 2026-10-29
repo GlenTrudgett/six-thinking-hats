@@ -8,6 +8,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
   optimisation API (GHSA-2464-fhr4-w9xw), a Server Actions denial of service (GHSA-p3m5-59mp-jv5r) and an
   RCE in `use cache` (GHSA-673q-mjm6-r5xr). This interface uses none of those features, but the audit step
   fails on them. Dependabot now also watches `web/` (npm), so this arrives as a pull request next time.
+- Python dependencies: `certifi` 2026.7.22 → 2026.10.23, `filelock` 4.1.0 → 4.2.4 and `virtualenv` 21.14.6 →
+  21.15.1, clearing the 16 advisories `pip-audit` reported (the last two are development tools only).
 
 ### Fixed
 - The nightly workflow installs all extras (`uv sync --frozen --all-extras`), as CI does. Without the `web` extra
