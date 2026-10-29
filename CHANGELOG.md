@@ -3,6 +3,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com) and Se
 
 ## [Unreleased]
 
+### Security
+- Python dependencies: `certifi` 2026.7.22 → 2026.10.23, `filelock` 4.1.0 → 4.2.4 and `virtualenv` 21.14.6 →
+  21.15.1, clearing the 16 advisories `pip-audit` reported (the last two are development tools only).
+
 ### Fixed
 - The nightly workflow installs all extras (`uv sync --frozen --all-extras`), as CI does. Without the `web` extra
   the full test run stopped at collection (`No module named 'fastapi'`) and the nightly came back red.
