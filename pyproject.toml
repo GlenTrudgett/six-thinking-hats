@@ -25,7 +25,7 @@ sixhats = "six_hats.interfaces.cli:app"
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
+  "pytest>=9.2.0",
   "pytest-asyncio>=1.4.1",
   "pytest-cov>=5",
   "pytest-socket>=0.7",
