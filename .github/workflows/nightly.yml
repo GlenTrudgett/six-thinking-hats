@@ -15,7 +15,7 @@ jobs:
         with: { enable-cache: true }
       - run: uv sync --frozen --all-extras
       - run: uv run pytest
-      - run: uv run pip-audit
+      - run: uv run pip-audit --skip-editable
   container:
     runs-on: ubuntu-latest
     steps:

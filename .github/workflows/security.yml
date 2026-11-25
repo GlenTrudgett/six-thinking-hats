@@ -13,8 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
-      - run: uv sync --frozen
-      - run: uv run pip-audit
+      - run: uv sync --frozen --all-extras
+      - run: uv run pip-audit --skip-editable
   gitleaks:
     runs-on: ubuntu-latest
     steps:
